@@ -1,0 +1,3 @@
+[submodule "third-part/hev-task-system"]
+	path = third-part/hev-task-system
+	url = https://github.com/heiher/hev-task-system
