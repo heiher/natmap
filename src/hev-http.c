@@ -43,7 +43,7 @@ http_keep_alive (int fd, const char *http)
     iov[2].iov_base = "\r\nConnection: keep-alive\r\n\r\n";
     iov[2].iov_len = strlen (iov[2].iov_base);
 
-    for (; timeout;) {
+    for (;;) {
         int count = 0;
         int res;
 
@@ -58,7 +58,7 @@ http_keep_alive (int fd, const char *http)
         for (;;) {
             res = hev_task_io_socket_recv (fd, buffer, sizeof (buffer), 0,
                                            io_yielder, &timeout);
-            if ((res == -2) && (count++ == 0)) {
+            if ((res == -2) && (count++ == 0) && timeout) {
                 break;
             } else if (res < 0) {
                 return;
