@@ -17,6 +17,7 @@
 
 static int type = AF_UNSPEC;
 static int keep = 30000;
+static int dmon;
 
 static const char *stun;
 static const char *http;
@@ -37,6 +38,7 @@ hev_conf_help (void)
         "Options:\n"
         " -4                use IPv4\n"
         " -6                use IPv6\n"
+        " -d                run as daemon\n"
         " -i <interface>    network interface\n"
         " -k <interval>     seconds between each keep-alive\n"
         " -s <address>      domain name or address to STUN server\n"
@@ -58,13 +60,16 @@ hev_conf_init (int argc, char *argv[])
 {
     int opt;
 
-    while ((opt = getopt (argc, argv, "46k:s:h:b:t:p:e:i:")) != -1) {
+    while ((opt = getopt (argc, argv, "46dk:s:h:e:b:t:p:i:")) != -1) {
         switch (opt) {
         case '4':
             type = AF_INET;
             break;
         case '6':
             type = AF_INET6;
+            break;
+        case 'd':
+            dmon = 1;
             break;
         case 'k':
             keep = strtoul (optarg, NULL, 10) * 1000;
@@ -170,4 +175,10 @@ const char *
 hev_conf_iface (void)
 {
     return iface;
+}
+
+int
+hev_conf_daemon (void)
+{
+    return dmon;
 }

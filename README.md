@@ -32,6 +32,7 @@ Usage:
 Options:
  -4                use IPv4
  -6                use IPv6
+ -d                run as daemon
  -i <interface>    network interface
  -k <interval>     seconds between each keep-alive
  -s <address>      domain name or address to STUN server

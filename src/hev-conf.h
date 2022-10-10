@@ -120,4 +120,13 @@ const char *hev_conf_tport (void);
  */
 const char *hev_conf_iface (void);
 
+/**
+ * hev_conf_daemon:
+ *
+ * Get is run as daemon.
+ *
+ * Returns: returns non-zero on true, otherwise returns zero.
+ */
+int hev_conf_daemon (void);
+
 #endif /* __HEV_CONF_H__ */

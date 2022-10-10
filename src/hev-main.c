@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <signal.h>
+#include <unistd.h>
 #include <sys/resource.h>
 
 #include <hev-task-system.h>
@@ -34,6 +35,12 @@ main (int argc, char *argv[])
         printf ("\nVersion: %s\n", COMMIT_ID);
 #endif
         return -1;
+    }
+
+    res = hev_conf_daemon ();
+    if (res) {
+        if (daemon (1, 1)) {
+        }
     }
 
     signal (SIGPIPE, SIG_IGN);
