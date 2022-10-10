@@ -18,6 +18,24 @@
 
 #include "hev-misc.h"
 
+#if defined(__mips__)
+#if defined(_LP64)
+#define NR_Linux 5000
+#else
+#define NR_Linux 4000
+#endif
+#else
+#define NR_Linux 0
+#endif
+
+#if !defined(SYS_pidfd_open)
+#define SYS_pidfd_open (NR_Linux + 434)
+#endif
+
+#if !defined(SYS_pidfd_getfd)
+#define SYS_pidfd_getfd (NR_Linux + 438)
+#endif
+
 int
 io_yielder (HevTaskYieldType type, void *data)
 {
@@ -152,7 +170,6 @@ get_pid_fd (unsigned long inode, pid_t *pid, int *fd)
 static int
 set_reuse_port (pid_t pid, int fd)
 {
-#if defined(SYS_pidfd_open) && defined(SYS_pidfd_getfd)
     const int reuse = 1;
     int pfd;
     int sfd;
@@ -175,9 +192,6 @@ set_reuse_port (pid_t pid, int fd)
     close (sfd);
     close (pfd);
     return 0;
-#else
-    return -1;
-#endif
 }
 
 int
