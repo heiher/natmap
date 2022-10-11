@@ -2,10 +2,10 @@
 
 [![status](https://gitlab.com/hev/natmap/badges/master/pipeline.svg)](https://gitlab.com/hev/natmap/commits/master)
 
-The NATMap is used to establish a TCP mapping of public address to private
-address. On a full cone NAT(NAT-1), this allows any host to access internal
-services through public address. The transmission does not go through the
-NATMap on binding mode.
+This project is used to establish a TCP port mapping from ISP NAT public address
+to local private address. If all layers of NAT are full cones (NAT-1), any host
+can access internal services through the mapped public address. In bind mode,
+all traffic does not go through this program.
 
 ## How to Build
 
@@ -49,31 +49,65 @@ Forward options:
 
 ### Bind mode
 
-The NATMap binds to TCP port 80 as the source, establishes a TCP connection to
-the qq.com for keep-alive and anoter to the stun.stunprotocol.org to get the
-public source address. The script (/bin/echo) will be execute with arguments
-after the mapped address is returned by the STUN server. The argument of the
-script is the public source address/port and IP4P address format for IPv4.
+This program will establishs a TCP port mapping in two steps:
 
-Typically, the script is used to update the IP4P address to the DNS record of a
-domain name for accessing the mapped services.
+1. Establish a connection with the HTTP server from the specified bind port and
+keep-alive.
+2. Establish a connection with the STUN server from the same port and obtain the
+public address.
+
+And this program will call the script specified by the argument to inform the
+public address after the TCP port mapping is established. and the script can
+update it to the DNS record for external access.
+
+Please note that you need to open the firewall to allow access to the bind port.
+
+#### OpenWrt
+
+Goto Network -> Firewall -> Traffic Rules
+
+Add a traffic rule:
+
+* Protocol: TCP
+* Source zone: wan
+* Destination zone: Device (input)
+* Destination port: [bind port]
+* Action: accept
+* Others: keep default values
 
 ```bash
 natmap -s stun.stunprotocol.org -h qq.com -b 80 -e /bin/echo
 ```
 
-When binding an address that is already bound and not set reuseport, the NATMap
-will try to set the reuseport of the socket in the service process. That works
-from Linux kernel 5.6 and needs run as root.
+If the port binding fails, because it is already in use. This program will try
+to find out which local service process takes up the port and enable reuse port
+remotely. This works in Linux kernel 5.6 and later, and needs to run as root.
 
 ### Forward mode
 
-Similar to bind mode, the difference is the transmission is go through the
-NATMap.
+Similar to bind mode, this program will listening on bound port and accepts the
+incoming connections and forward to target address.
 
 ```bash
-natmap -s stun.stunprotocol.org -h qq.com -b 80 -t 127.0.0.1 -p 80 -e /bin/echo
+natmap -s stun.stunprotocol.org -h qq.com -b 80 -t 10.0.0.2 -p 80 -e /bin/echo
 ```
+
+Another way is to use firewall's DNAT to forward, and this way should uses bind
+mode.
+
+#### OpenWrt
+
+Goto Network -> Firewall -> Port Forwards
+
+Add a port forward rule:
+
+* Protocol: TCP
+* Source zone: wan
+* External port: [bind port]
+* Destination zone: lan
+* Internal IP address: 10.0.0.2
+* Internal port: 80
+* Others: keep default values
 
 ### Script arguments
 
@@ -84,8 +118,8 @@ natmap -s stun.stunprotocol.org -h qq.com -b 80 -t 127.0.0.1 -p 80 -e /bin/echo
 
 ### IP4P address
 
-The IP4P address format uses IPv6 reserved addresses to encode IPv4 addresses
-and ports for easy distribution thorugh DNS AAAA records.
+The IP4P address format uses IPv6 special addresses to encode IPv4 addresses and
+ports for easy distribution through DNS AAAA records.
 
 ```
 2001::{port}:{ipv4-hi16}:{ipv4-lo16}
