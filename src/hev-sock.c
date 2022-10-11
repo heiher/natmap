@@ -11,6 +11,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <net/if.h>
+#include <netinet/in.h>
 
 #include <hev-task.h>
 #include <hev-task-dns.h>
