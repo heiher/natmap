@@ -127,6 +127,7 @@ ports for easy distribution through DNS AAAA records.
 
 ## Contributors
 * **hev** - https://hev.cc
+* **mike wang** - https://github.com/mikewang000000
 
 ## License
 MIT
