@@ -37,15 +37,8 @@ hev_exec_run (int family, unsigned int addr[4], unsigned short port)
     char ip4p[32];
     pid_t pid;
 
+    path = hev_conf_path ();
     signal (SIGCHLD, signal_handler);
-
-    pid = fork ();
-    if (pid < 0) {
-        LOG (E);
-        return;
-    } else if (pid != 0) {
-        return;
-    }
 
     q = (unsigned char *)addr;
     p = (unsigned char *)&port;
@@ -62,7 +55,19 @@ hev_exec_run (int family, unsigned int addr[4], unsigned short port)
         ip4p[0] = '\0';
     }
 
-    path = hev_conf_path ();
+    if (!path) {
+        printf ("%s %s %s\n", saddr, sport, ip4p);
+        return;
+    }
+
+    pid = fork ();
+    if (pid < 0) {
+        LOG (E);
+        return;
+    } else if (pid != 0) {
+        return;
+    }
+
     execl (path, path, saddr, sport, ip4p, NULL);
 
     LOG (E);

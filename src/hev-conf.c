@@ -100,7 +100,7 @@ hev_conf_init (int argc, char *argv[])
         }
     }
 
-    if (!stun || !http || !path || !bport) {
+    if (!stun || !http || !bport) {
         return -1;
     }
 
