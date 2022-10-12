@@ -60,7 +60,7 @@ http_keep_alive (int fd, const char *http)
                                            io_yielder, &timeout);
             if ((res == -2) && (misscnt++ == 0) && timeout) {
                 break;
-            } if (res <= 0) {
+            } else if (res <= 0) {
                 return;
             } else {
                 misscnt = 0;
