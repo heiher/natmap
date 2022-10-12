@@ -37,7 +37,7 @@
 #endif
 
 int
-io_yielder (HevTaskYieldType type, void *data)
+hev_io_yielder (HevTaskYieldType type, void *data)
 {
     const int timeout = *(int *)data;
 
