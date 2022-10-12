@@ -30,6 +30,7 @@ hev_exec_run (int family, unsigned int addr[4], unsigned short port)
 {
     unsigned char *q;
     unsigned char *p;
+    const char *bport;
     const char *path;
     const char *fmt;
     char saddr[32];
@@ -38,6 +39,7 @@ hev_exec_run (int family, unsigned int addr[4], unsigned short port)
     pid_t pid;
 
     path = hev_conf_path ();
+    bport = hev_conf_bport ();
     signal (SIGCHLD, signal_handler);
 
     q = (unsigned char *)addr;
@@ -56,7 +58,7 @@ hev_exec_run (int family, unsigned int addr[4], unsigned short port)
     }
 
     if (!path) {
-        printf ("%s %s %s\n", saddr, sport, ip4p);
+        printf ("%s %s %s %s\n", saddr, sport, ip4p, bport);
         return;
     }
 
@@ -68,7 +70,7 @@ hev_exec_run (int family, unsigned int addr[4], unsigned short port)
         return;
     }
 
-    execl (path, path, saddr, sport, ip4p, NULL);
+    execl (path, path, saddr, sport, ip4p, bport, NULL);
 
     LOG (E);
     exit (-1);

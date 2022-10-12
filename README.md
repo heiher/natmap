@@ -112,9 +112,10 @@ Add a port forward rule:
 ### Script arguments
 
 * argv[0]: Script path
-* argv[1]: IPv4 (142.163.54.79)
-* argv[2]: Port (53906)
-* argv[3]: IP4P (2001::92d2:8ea3:364f)
+* argv[1]: Public address (IPv4/IPv6)
+* argv[2]: Public port
+* argv[3]: IP4P
+* argv[4]: Bind port
 
 ### IP4P address
 
