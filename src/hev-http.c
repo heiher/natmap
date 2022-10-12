@@ -50,7 +50,7 @@ http_keep_alive (int fd, const char *http)
         timeout = 30000;
         res = hev_task_io_socket_sendmsg (fd, &mh, MSG_WAITALL, io_yielder,
                                           &timeout);
-        if (res < 0) {
+        if (res <= 0) {
             return;
         }
 
@@ -60,7 +60,7 @@ http_keep_alive (int fd, const char *http)
                                            io_yielder, &timeout);
             if ((res == -2) && (count++ == 0) && timeout) {
                 break;
-            } else if (res < 0) {
+            } else if (res <= 0) {
                 return;
             }
         }

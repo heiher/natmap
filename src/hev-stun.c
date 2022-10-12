@@ -91,14 +91,14 @@ stun_bind (int fd)
 
     res = hev_task_io_socket_send (fd, &msg, sizeof (msg), MSG_WAITALL,
                                    io_yielder, &timeout);
-    if (res < 0) {
+    if (res <= 0) {
         LOG (E);
         return -1;
     }
 
     res = hev_task_io_socket_recv (fd, &msg, sizeof (msg), MSG_WAITALL,
                                    io_yielder, &timeout);
-    if (res < 0) {
+    if (res <= 0) {
         LOG (E);
         return -1;
     }
@@ -111,7 +111,7 @@ stun_bind (int fd)
 
     res = hev_task_io_socket_recv (fd, buf, len, MSG_WAITALL, io_yielder,
                                    &timeout);
-    if (res < 0) {
+    if (res <= 0) {
         LOG (E);
         return -1;
     }
