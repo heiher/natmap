@@ -37,7 +37,7 @@ http_keep_alive (int fd, const char *http)
     mh.msg_iov = iov;
     mh.msg_iovlen = 3;
 
-    iov[0].iov_base = "GET /~ HTTP/1.1\r\nHost: ";
+    iov[0].iov_base = "HEAD / HTTP/1.1\r\nHost: ";
     iov[0].iov_len = strlen (iov[0].iov_base);
     iov[1].iov_base = (void *)http;
     iov[1].iov_len = strlen (iov[1].iov_base);
