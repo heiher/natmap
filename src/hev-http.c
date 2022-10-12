@@ -32,6 +32,7 @@ http_keep_alive (int fd, const char *http)
     static char buffer[8192];
     struct msghdr mh = { 0 };
     struct iovec iov[3];
+    int misscnt = 0;
 
     mh.msg_iov = iov;
     mh.msg_iovlen = 3;
@@ -44,7 +45,6 @@ http_keep_alive (int fd, const char *http)
     iov[2].iov_len = strlen (iov[2].iov_base);
 
     for (;;) {
-        int count = 0;
         int res;
 
         timeout = 30000;
@@ -58,10 +58,12 @@ http_keep_alive (int fd, const char *http)
         for (;;) {
             res = hev_task_io_socket_recv (fd, buffer, sizeof (buffer), 0,
                                            io_yielder, &timeout);
-            if ((res == -2) && (count++ == 0) && timeout) {
+            if ((res == -2) && (misscnt++ == 0) && timeout) {
                 break;
-            } else if (res <= 0) {
+            } if (res <= 0) {
                 return;
+            } else {
+                misscnt = 0;
             }
         }
     }
