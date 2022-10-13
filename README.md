@@ -49,6 +49,10 @@ Forward options:
 
 ### Bind mode
 
+```bash
+natmap -s stun.stunprotocol.org -h qq.com -b 80 -e /bin/echo
+```
+
 This program will establishs a TCP port mapping in two steps:
 
 1. Establish a connection with the HTTP server from the specified bind port and
@@ -75,22 +79,18 @@ Add a traffic rule:
 * Action: accept
 * Others: keep default values
 
-```bash
-natmap -s stun.stunprotocol.org -h qq.com -b 80 -e /bin/echo
-```
-
 If the port binding fails, because it is already in use. This program will try
 to find out which local service process takes up the port and enable reuse port
 remotely. This works in Linux kernel 5.6 and later, and needs to run as root.
 
 ### Forward mode
 
-Similar to bind mode, this program will listening on bound port and accepts the
-incoming connections and forward to target address.
-
 ```bash
 natmap -s stun.stunprotocol.org -h qq.com -b 80 -t 10.0.0.2 -p 80 -e /bin/echo
 ```
+
+Similar to bind mode, this program will listening on bound port and accepts the
+incoming connections and forward to target address.
 
 Another way is to use firewall's DNAT to forward, and this way should uses bind
 mode.
