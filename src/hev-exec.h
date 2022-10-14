@@ -13,11 +13,13 @@
 /**
  * hev_exec_run:
  * @family: network family
- * @addr: mapped addr
- * @port: mapped port
+ * @maddr: mapped addr
+ * @mport: mapped port
+ * @bport: bound port
  *
  * Run script to notify the mapped address is changed.
  */
-void hev_exec_run (int family, unsigned int addr[4], unsigned short port);
+void hev_exec_run (int family, unsigned int maddr[4], unsigned short mport,
+                   unsigned short bport);
 
 #endif /* __HEV_EXEC_H__ */

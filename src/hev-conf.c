@@ -100,7 +100,7 @@ hev_conf_init (int argc, char *argv[])
         }
     }
 
-    if (!stun || !http || !bport) {
+    if (!stun || !http) {
         return -1;
     }
 
@@ -110,6 +110,10 @@ hev_conf_init (int argc, char *argv[])
 
     if (keep <= 0) {
         return -1;
+    }
+
+    if (!bport) {
+        bport = "0";
     }
 
     baddr = (type == AF_INET6) ? "::" : "0.0.0.0";

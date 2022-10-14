@@ -148,7 +148,7 @@ hev_sock_client_http (int family, const char *saddr, const char *sport,
 }
 
 int
-hev_sock_client_stun (int fd, const char *daddr, const char *dport)
+hev_sock_client_stun (int fd, const char *daddr, const char *dport, int *bport)
 {
     struct addrinfo sai;
     struct addrinfo *dai;
@@ -186,6 +186,12 @@ hev_sock_client_stun (int fd, const char *daddr, const char *dport)
         freeaddrinfo (dai);
         close (fd);
         return -1;
+    }
+
+    if (saddr.ss_family == AF_INET) {
+        *bport = ((struct sockaddr_in *)&saddr)->sin_port;
+    } else if (saddr.ss_family == AF_INET6) {
+        *bport = ((struct sockaddr_in6 *)&saddr)->sin6_port;
     }
 
     hev_task_add_fd (hev_task_self (), fd, POLLIN | POLLOUT);

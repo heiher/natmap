@@ -26,29 +26,30 @@ signal_handler (int signum)
 }
 
 void
-hev_exec_run (int family, unsigned int addr[4], unsigned short port)
+hev_exec_run (int family, unsigned int maddr[4], unsigned short mport,
+              unsigned short bport)
 {
     unsigned char *q;
     unsigned char *p;
-    const char *bport;
     const char *path;
     const char *fmt;
     char saddr[32];
     char sport[32];
+    char lport[32];
     char ip4p[32];
     pid_t pid;
 
     path = hev_conf_path ();
-    bport = hev_conf_bport ();
     signal (SIGCHLD, signal_handler);
 
-    q = (unsigned char *)addr;
-    p = (unsigned char *)&port;
+    q = (unsigned char *)maddr;
+    p = (unsigned char *)&mport;
 
-    inet_ntop (family, addr, saddr, sizeof (saddr));
+    inet_ntop (family, maddr, saddr, sizeof (saddr));
 
     fmt = "%u";
-    snprintf (sport, sizeof (sport), fmt, ntohs (port));
+    snprintf (sport, sizeof (sport), fmt, ntohs (mport));
+    snprintf (lport, sizeof (lport), fmt, ntohs (bport));
 
     if (family == AF_INET) {
         fmt = "2001::%02x%02x:%02x%02x:%02x%02x";
@@ -58,7 +59,7 @@ hev_exec_run (int family, unsigned int addr[4], unsigned short port)
     }
 
     if (!path) {
-        printf ("%s %s %s %s\n", saddr, sport, ip4p, bport);
+        printf ("%s %s %s %s\n", saddr, sport, ip4p, lport);
         return;
     }
 
@@ -70,7 +71,7 @@ hev_exec_run (int family, unsigned int addr[4], unsigned short port)
         return;
     }
 
-    execl (path, path, saddr, sport, ip4p, bport, NULL);
+    execl (path, path, saddr, sport, ip4p, lport, NULL);
 
     LOG (E);
     exit (-1);

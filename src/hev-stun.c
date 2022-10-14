@@ -69,12 +69,12 @@ struct _StunMappedAddr
 };
 
 static int
-stun_bind (int fd)
+stun_bind (int fd, int bport)
 {
     const int bufsize = 2048;
     char buf[bufsize + 32];
-    unsigned int *addr;
-    unsigned short port;
+    unsigned int *maddr;
+    unsigned short mport;
     int timeout = 30000;
     StunMessage msg;
     int family = 0;
@@ -129,18 +129,18 @@ stun_bind (int fd)
 
         if (a->type == htons (MAPPED_ADDR)) {
             family = m->family;
-            port = m->port;
-            addr = m->addr;
+            mport = m->port;
+            maddr = m->addr;
             break;
         } else if (a->type == htons (XOR_MAPPED_ADDR)) {
             family = m->family;
-            port = m->port;
-            addr = m->addr;
-            port ^= msg.magic;
-            addr[0] ^= msg.magic;
-            addr[1] ^= msg.tid[0];
-            addr[2] ^= msg.tid[1];
-            addr[3] ^= msg.tid[2];
+            mport = m->port;
+            maddr = m->addr;
+            mport ^= msg.magic;
+            maddr[0] ^= msg.magic;
+            maddr[1] ^= msg.tid[0];
+            maddr[2] ^= msg.tid[1];
+            maddr[3] ^= msg.tid[2];
             break;
         }
 
@@ -159,7 +159,7 @@ stun_bind (int fd)
         return -1;
     }
 
-    hev_exec_run (family, addr, port);
+    hev_exec_run (family, maddr, mport, bport);
 
     return 0;
 }
@@ -168,20 +168,21 @@ static void
 task_entry (void *data)
 {
     const char *stun;
+    int bport;
     int res;
     int fd;
 
     fd = (intptr_t)data;
     stun = hev_conf_stun ();
 
-    fd = hev_sock_client_stun (fd, stun, "3478");
+    fd = hev_sock_client_stun (fd, stun, "3478", &bport);
     if (fd < 0) {
         LOG (E);
         hev_http_kill ();
         return;
     }
 
-    res = stun_bind (fd);
+    res = stun_bind (fd, bport);
     if (res < 0) {
         LOG (E);
         close (fd);

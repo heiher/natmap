@@ -32,12 +32,14 @@ int hev_sock_client_http (int family, const char *saddr, const char *sport,
  * @fd: http socket file descriptor
  * @daddr: destination addr
  * @dport: destination port
+ * @bport: [out] bound port
  *
  * Create a socket for client STUN.
  *
  * Returns: returns file descriptor on successful, otherwise returns -1.
  */
-int hev_sock_client_stun (int fd, const char *daddr, const char *dport);
+int hev_sock_client_stun (int fd, const char *daddr, const char *dport,
+                          int *bport);
 
 /**
  * hev_sock_client_pfwd:
