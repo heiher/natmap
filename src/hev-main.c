@@ -16,6 +16,7 @@
 
 #include "hev-conf.h"
 #include "hev-http.h"
+#include "hev-misc.h"
 
 #include "hev-main.h"
 
@@ -39,8 +40,7 @@ main (int argc, char *argv[])
 
     res = hev_conf_daemon ();
     if (res) {
-        if (daemon (1, 1)) {
-        }
+        hev_run_daemon ();
     }
 
     signal (SIGPIPE, SIG_IGN);

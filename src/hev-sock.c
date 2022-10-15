@@ -74,6 +74,37 @@ get_sock (struct addrinfo *ai)
     return fd;
 }
 
+static int
+bind_iface (int fd, int family, const char *iface)
+{
+    if (!iface) {
+        return 0;
+    }
+
+#if defined(__linux__)
+    struct ifreq ifr = { 0 };
+
+    strncpy (ifr.ifr_name, iface, sizeof (ifr.ifr_name) - 1);
+    return setsockopt (fd, SOL_SOCKET, SO_BINDTODEVICE, &ifr, sizeof (ifr));
+#elif defined(__APPLE__) || defined(__MACH__)
+    int i;
+
+    i = if_nametoindex (iface);
+    if (i == 0) {
+        return -1;
+    }
+
+    switch (family) {
+    case AF_INET:
+        return setsockopt (fd, IPPROTO_IP, IP_BOUND_IF, &i, sizeof (i));
+    case AF_INET6:
+        return setsockopt (fd, IPPROTO_IPV6, IPV6_BOUND_IF, &i, sizeof (i));
+    }
+#endif
+
+    return -1;
+}
+
 int
 hev_sock_client_http (int family, const char *saddr, const char *sport,
                       const char *daddr, const char *dport, const char *iface)
@@ -105,18 +136,13 @@ hev_sock_client_http (int family, const char *saddr, const char *sport,
         return -1;
     }
 
-    if (iface) {
-        struct ifreq ifr = { 0 };
-
-        strncpy (ifr.ifr_name, iface, sizeof (ifr.ifr_name) - 1);
-        res = setsockopt (fd, SOL_SOCKET, SO_BINDTODEVICE, &ifr, sizeof (ifr));
-        if (res < 0) {
-            LOG (E);
-            freeaddrinfo (sai);
-            freeaddrinfo (dai);
-            close (fd);
-            return -1;
-        }
+    res = bind_iface (fd, sai->ai_family, iface);
+    if (res < 0) {
+        LOG (E);
+        freeaddrinfo (sai);
+        freeaddrinfo (dai);
+        close (fd);
+        return -1;
     }
 
     res = bind (fd, sai->ai_addr, sai->ai_addrlen);

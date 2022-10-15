@@ -36,6 +36,16 @@
 #define SYS_pidfd_getfd (NR_Linux + 438)
 #endif
 
+#if defined(__linux__)
+#define run_syscall syscall
+#else
+static long
+run_syscall (long n, ...)
+{
+    return -1;
+}
+#endif
+
 int
 hev_io_yielder (HevTaskYieldType type, void *data)
 {
@@ -174,13 +184,13 @@ set_reuse_port (pid_t pid, int fd)
     int pfd;
     int sfd;
 
-    pfd = syscall (SYS_pidfd_open, pid, 0);
+    pfd = run_syscall (SYS_pidfd_open, pid, 0);
     if (pfd < 0) {
         LOG (E);
         return -1;
     }
 
-    sfd = syscall (SYS_pidfd_getfd, pfd, fd, 0);
+    sfd = run_syscall (SYS_pidfd_getfd, pfd, fd, 0);
     if (sfd < 0) {
         LOG (E);
         close (pfd);
@@ -221,4 +231,23 @@ hev_reuse_port (const char *port)
     }
 
     return result;
+}
+
+int
+hev_run_daemon (void)
+{
+    switch (fork ()) {
+    case -1:
+        return -1;
+    case 0:
+        break;
+    default:
+        exit (0);
+    }
+
+    if (setsid () < 0) {
+        return -1;
+    }
+
+    return 0;
 }

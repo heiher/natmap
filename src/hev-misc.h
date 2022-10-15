@@ -41,4 +41,13 @@ int hev_io_yielder (HevTaskYieldType type, void *data);
  */
 int hev_reuse_port (const char *port);
 
+/**
+ * hev_run_daemon:
+ *
+ * Run as daemon.
+ *
+ * Returns: returns zero on successful, otherwise returns -1.
+ */
+int hev_run_daemon (void);
+
 #endif /* __HEV_MISC_H__ */
