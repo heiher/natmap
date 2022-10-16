@@ -61,6 +61,7 @@ hev_exec_run (int family, unsigned int maddr[4], unsigned short mport,
 
     if (!path) {
         printf ("%s %s %s %s\n", saddr, sport, ip4p, lport);
+        fflush (stdout);
         return;
     }
 
