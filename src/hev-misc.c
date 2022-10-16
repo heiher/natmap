@@ -161,10 +161,10 @@ get_pid_fd (unsigned long inode, pid_t *pid, int *fd)
 
             name[len] = '\0';
             if (strcmp (name, match) == 0) {
-                closedir (df);
-                closedir (dp);
                 *fd = strtoul (dfe->d_name, NULL, 10);
                 *pid = strtoul (dpe->d_name, NULL, 10);
+                closedir (df);
+                closedir (dp);
                 return 0;
             }
         }
