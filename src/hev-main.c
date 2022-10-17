@@ -33,7 +33,7 @@ main (int argc, char *argv[])
     if (res < 0) {
         fprintf (stderr, "%s", hev_conf_help ());
 #ifdef COMMIT_ID
-        printf ("\nVersion: %s\n", COMMIT_ID);
+        fprintf (stderr, "\nVersion: %s\n", COMMIT_ID);
 #endif
         return -1;
     }
