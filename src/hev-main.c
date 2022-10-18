@@ -8,8 +8,10 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
+#include <sys/time.h>
 #include <sys/resource.h>
 
 #include <hev-task-system.h>
@@ -27,6 +29,7 @@ main (int argc, char *argv[])
         .rlim_cur = 65536,
         .rlim_max = 65536,
     };
+    struct timeval tv;
     int res;
 
     res = hev_conf_init (argc, argv);
@@ -42,6 +45,9 @@ main (int argc, char *argv[])
     if (res) {
         hev_run_daemon ();
     }
+
+    gettimeofday (&tv, 0);
+    srand (tv.tv_sec ^ tv.tv_usec);
 
     signal (SIGPIPE, SIG_IGN);
     setrlimit (RLIMIT_NOFILE, &limit);
