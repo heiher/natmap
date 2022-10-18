@@ -174,7 +174,8 @@ hev_sock_client_http (int family, const char *saddr, const char *sport,
 }
 
 int
-hev_sock_client_stun (int fd, const char *daddr, const char *dport, int *bport)
+hev_sock_client_stun (int fd, const char *daddr, const char *dport,
+                      const char *iface, int *bport)
 {
     struct addrinfo sai;
     struct addrinfo *dai;
@@ -203,6 +204,14 @@ hev_sock_client_stun (int fd, const char *daddr, const char *dport, int *bport)
     if (fd < 0) {
         LOG (E);
         freeaddrinfo (dai);
+        return -1;
+    }
+
+    res = bind_iface (fd, sai.ai_family, iface);
+    if (res < 0) {
+        LOG (E);
+        freeaddrinfo (dai);
+        close (fd);
         return -1;
     }
 

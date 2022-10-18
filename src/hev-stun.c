@@ -167,6 +167,7 @@ stun_bind (int fd, int bport)
 static void
 task_entry (void *data)
 {
+    const char *iface;
     const char *stun;
     int bport;
     int res;
@@ -174,8 +175,9 @@ task_entry (void *data)
 
     fd = (intptr_t)data;
     stun = hev_conf_stun ();
+    iface = hev_conf_iface ();
 
-    fd = hev_sock_client_stun (fd, stun, "3478", &bport);
+    fd = hev_sock_client_stun (fd, stun, "3478", iface, &bport);
     if (fd < 0) {
         LOG (E);
         hev_http_kill ();
