@@ -1,27 +1,27 @@
 /*
  ============================================================================
- Name        : hev-http.h
+ Name        : hev-tnsk.h
  Author      : hev <r@hev.cc>
  Copyright   : Copyright (c) 2022 xyz
- Description : Http
+ Description : TCP NAT session keeper
  ============================================================================
  */
 
-#ifndef __HEV_HTTP_H__
-#define __HEV_HTTP_H__
+#ifndef __HEV_TNSK_H__
+#define __HEV_TNSK_H__
 
 /**
- * hev_http_run:
+ * hev_tnsk_run:
  *
  * Run HTTP client to keep-alive.
  */
-void hev_http_run (void);
+void hev_tnsk_run (void);
 
 /**
- * hev_http_kill:
+ * hev_tnsk_kill:
  *
  * Force stop HTTP client.
  */
-void hev_http_kill (void);
+void hev_tnsk_kill (void);
 
-#endif /* __HEV_HTTP_H__ */
+#endif /* __HEV_TNSK_H__ */

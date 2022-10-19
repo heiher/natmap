@@ -17,8 +17,8 @@
 #include <hev-task-system.h>
 
 #include "hev-conf.h"
-#include "hev-http.h"
 #include "hev-misc.h"
+#include "hev-tnsk.h"
 
 #include "hev-main.h"
 
@@ -54,7 +54,7 @@ main (int argc, char *argv[])
 
     hev_task_system_init ();
 
-    hev_http_run ();
+    hev_tnsk_run ();
     hev_task_system_run ();
 
     hev_task_system_fini ();

@@ -1,9 +1,9 @@
 /*
  ============================================================================
- Name        : hev-http.c
+ Name        : hev-tnsk.c
  Author      : hev <r@hev.cc>
  Copyright   : Copyright (c) 2022 xyz
- Description : Http
+ Description : TCP NAT session keeper
  ============================================================================
  */
 
@@ -21,7 +21,7 @@
 #include "hev-stun.h"
 #include "hev-tfwd.h"
 
-#include "hev-http.h"
+#include "hev-tnsk.h"
 
 static HevTask *task;
 static int timeout;
@@ -70,7 +70,7 @@ http_keep_alive (int fd, const char *http)
 }
 
 static void
-http_run (void)
+tnsk_run (void)
 {
     const char *http;
     const char *tfwd;
@@ -111,20 +111,20 @@ static void
 task_entry (void *data)
 {
     for (;;) {
-        http_run ();
+        tnsk_run ();
         hev_task_sleep (5000);
     }
 }
 
 void
-hev_http_run (void)
+hev_tnsk_run (void)
 {
     task = hev_task_new (-1);
     hev_task_run (task, task_entry, NULL);
 }
 
 void
-hev_http_kill (void)
+hev_tnsk_kill (void)
 {
     timeout = 0;
     if (task) {
