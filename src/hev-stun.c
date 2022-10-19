@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
 
@@ -69,7 +70,41 @@ struct _StunMappedAddr
 };
 
 static int
-stun_bind (int fd, int bport)
+cmp_addr (int family, unsigned int *maddr, unsigned short mport,
+          unsigned short bport)
+{
+    static unsigned int pmaddr[4];
+    static unsigned short pmport;
+    static unsigned short pbport;
+    int res = 0;
+
+    if (pbport != bport) {
+        res |= -1;
+    }
+    pbport = bport;
+
+    if (pmport != mport) {
+        res |= -1;
+    }
+    pmport = mport;
+
+    switch (family) {
+    case AF_INET:
+        res |= memcmp (pmaddr, maddr, 4);
+        memcpy (&pmaddr[0], maddr, 4);
+        memset (&pmaddr[1], 0, 12);
+        break;
+    case AF_INET6:
+        res |= memcmp (pmaddr, maddr, 16);
+        memcpy (pmaddr, maddr, 16);
+        break;
+    }
+
+    return res;
+}
+
+static int
+stun_bind (int fd, int mode, int bport)
 {
     const int bufsize = 2048;
     char buf[bufsize + 32];
@@ -78,8 +113,10 @@ stun_bind (int fd, int bport)
     int timeout = 30000;
     StunMessage msg;
     int family = 0;
+    int flags = 0;
+    int exec;
     int len;
-    int res;
+    int pos;
     int i;
 
     msg.type = htons (0x0001);
@@ -89,34 +126,40 @@ stun_bind (int fd, int bport)
     msg.tid[1] = rand ();
     msg.tid[2] = rand ();
 
-    res = hev_task_io_socket_send (fd, &msg, sizeof (msg), MSG_WAITALL,
+    len = hev_task_io_socket_send (fd, &msg, sizeof (msg), MSG_WAITALL,
                                    io_yielder, &timeout);
-    if (res <= 0) {
+    if (len <= 0) {
         LOG (E);
         return -1;
     }
 
-    res = hev_task_io_socket_recv (fd, &msg, sizeof (msg), MSG_WAITALL,
-                                   io_yielder, &timeout);
-    if (res <= 0) {
+    if (mode == SOCK_STREAM) {
+        len = hev_task_io_socket_recv (fd, &msg, sizeof (msg), MSG_WAITALL,
+                                       io_yielder, &timeout);
+        if (len <= 0) {
+            LOG (E);
+            return -1;
+        }
+
+        len = htons (msg.size);
+        if ((len <= 0) || (len > bufsize)) {
+            LOG (E);
+            return -1;
+        }
+        flags = MSG_WAITALL;
+        pos = 0;
+    } else {
+        pos = sizeof (msg);
+        len = bufsize;
+    }
+
+    len = hev_task_io_socket_recv (fd, buf, len, flags, io_yielder, &timeout);
+    if (len <= 0) {
         LOG (E);
         return -1;
     }
 
-    len = htons (msg.size);
-    if ((len <= 0) || (len > bufsize)) {
-        LOG (E);
-        return -1;
-    }
-
-    res = hev_task_io_socket_recv (fd, buf, len, MSG_WAITALL, io_yielder,
-                                   &timeout);
-    if (res <= 0) {
-        LOG (E);
-        return -1;
-    }
-
-    for (i = 0; i < len;) {
+    for (i = pos; i < len;) {
         StunAttribute *a = (StunAttribute *)&buf[i];
         StunMappedAddr *m = (StunMappedAddr *)(a + 1);
         int size;
@@ -159,7 +202,11 @@ stun_bind (int fd, int bport)
         return -1;
     }
 
-    hev_exec_run (family, maddr, mport, bport);
+    exec = cmp_addr (family, maddr, mport, bport);
+
+    if (exec) {
+        hev_exec_run (family, maddr, mport, bport);
+    }
 
     return 0;
 }
@@ -170,21 +217,23 @@ task_entry (void *data)
     const char *iface;
     const char *stun;
     int bport;
+    int mode;
     int res;
     int fd;
 
     fd = (intptr_t)data;
     stun = hev_conf_stun ();
+    mode = hev_conf_mode ();
     iface = hev_conf_iface ();
 
-    fd = hev_sock_client_stun (fd, stun, "3478", iface, &bport);
+    fd = hev_sock_client_stun (fd, mode, stun, "3478", iface, &bport);
     if (fd < 0) {
         LOG (E);
         hev_xnsk_kill ();
         return;
     }
 
-    res = stun_bind (fd, bport);
+    res = stun_bind (fd, mode, bport);
     if (res < 0) {
         LOG (E);
         close (fd);

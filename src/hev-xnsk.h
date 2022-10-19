@@ -18,6 +18,13 @@
 void hev_xnsk_init (void *kill);
 
 /**
+ * hev_xnsk_run:
+ *
+ * Run keeper.
+ */
+void hev_xnsk_run (void);
+
+/**
  * hev_xnsk_kill:
  *
  * Force stop keeper.

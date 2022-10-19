@@ -23,15 +23,14 @@
 #include "hev-sock.h"
 
 static struct addrinfo *
-get_addr (int family, const char *addr, const char *port, int passive)
+get_addr (int family, int type, const char *addr, const char *port, int passive)
 {
     struct addrinfo *result = NULL;
     struct addrinfo hints = { 0 };
     int res;
 
     hints.ai_family = family;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = IPPROTO_TCP;
+    hints.ai_socktype = type;
     hints.ai_flags = passive ? AI_PASSIVE : 0;
 
     res = hev_task_dns_getaddrinfo (addr, port, &hints, &result);
@@ -49,15 +48,13 @@ get_sock (struct addrinfo *ai)
     const int reuse = 1;
     int family;
     int socktype;
-    int protocol;
     int res = 0;
     int fd;
 
     family = ai->ai_family;
     socktype = ai->ai_socktype;
-    protocol = ai->ai_protocol;
 
-    fd = hev_task_io_socket_socket (family, socktype, protocol);
+    fd = hev_task_io_socket_socket (family, socktype, 0);
     if (fd < 0) {
         LOG (E);
         return -1;
@@ -106,8 +103,8 @@ bind_iface (int fd, int family, const char *iface)
 }
 
 int
-hev_sock_client_http (int family, const char *saddr, const char *sport,
-                      const char *daddr, const char *dport, const char *iface)
+hev_sock_client_tcp (int family, const char *saddr, const char *sport,
+                     const char *daddr, const char *dport, const char *iface)
 {
     struct addrinfo *sai;
     struct addrinfo *dai;
@@ -115,13 +112,13 @@ hev_sock_client_http (int family, const char *saddr, const char *sport,
     int res;
     int fd;
 
-    sai = get_addr (family, saddr, sport, 0);
+    sai = get_addr (family, SOCK_STREAM, saddr, sport, 0);
     if (!sai) {
         LOG (E);
         return -1;
     }
 
-    dai = get_addr (sai->ai_family, daddr, dport, 0);
+    dai = get_addr (sai->ai_family, SOCK_STREAM, daddr, dport, 0);
     if (!dai) {
         LOG (E);
         freeaddrinfo (sai);
@@ -174,7 +171,52 @@ hev_sock_client_http (int family, const char *saddr, const char *sport,
 }
 
 int
-hev_sock_client_stun (int fd, const char *daddr, const char *dport,
+hev_sock_client_udp (int family, const char *saddr, const char *sport,
+                     const char *iface)
+{
+    struct addrinfo *sai;
+    int res;
+    int fd;
+
+    sai = get_addr (family, SOCK_DGRAM, saddr, sport, 0);
+    if (!sai) {
+        LOG (E);
+        return -1;
+    }
+
+    fd = get_sock (sai);
+    if (fd < 0) {
+        LOG (E);
+        freeaddrinfo (sai);
+        return -1;
+    }
+
+    res = bind_iface (fd, sai->ai_family, iface);
+    if (res < 0) {
+        LOG (E);
+        freeaddrinfo (sai);
+        close (fd);
+        return -1;
+    }
+
+    res = bind (fd, sai->ai_addr, sai->ai_addrlen);
+    if (res < 0) {
+        hev_reuse_port (sport);
+        res = bind (fd, sai->ai_addr, sai->ai_addrlen);
+        if (res < 0) {
+            LOG (E);
+            freeaddrinfo (sai);
+            close (fd);
+            return -1;
+        }
+    }
+    freeaddrinfo (sai);
+
+    return fd;
+}
+
+int
+hev_sock_client_stun (int fd, int type, const char *daddr, const char *dport,
                       const char *iface, int *bport)
 {
     struct addrinfo sai;
@@ -191,10 +233,9 @@ hev_sock_client_stun (int fd, const char *daddr, const char *dport,
     }
 
     sai.ai_family = saddr.ss_family;
-    sai.ai_socktype = SOCK_STREAM;
-    sai.ai_protocol = IPPROTO_TCP;
+    sai.ai_socktype = type;
 
-    dai = get_addr (sai.ai_family, daddr, dport, 0);
+    dai = get_addr (sai.ai_family, sai.ai_socktype, daddr, dport, 0);
     if (!dai) {
         LOG (E);
         return -1;
@@ -244,14 +285,14 @@ hev_sock_client_stun (int fd, const char *daddr, const char *dport,
 }
 
 int
-hev_sock_client_pfwd (const char *addr, const char *port)
+hev_sock_client_pfwd (int type, const char *addr, const char *port)
 {
     struct addrinfo *ai;
     int timeout = 30000;
     int res;
     int fd;
 
-    ai = get_addr (AF_UNSPEC, addr, port, 0);
+    ai = get_addr (AF_UNSPEC, type, addr, port, 0);
     if (!ai) {
         LOG (E);
         return -1;
@@ -279,7 +320,7 @@ hev_sock_client_pfwd (const char *addr, const char *port)
 }
 
 int
-hev_sock_server_pfwd (int fd)
+hev_sock_server_pfwd (int fd, int type)
 {
     struct addrinfo ai;
     struct sockaddr_storage addr;
@@ -293,8 +334,7 @@ hev_sock_server_pfwd (int fd)
     }
 
     ai.ai_family = addr.ss_family;
-    ai.ai_socktype = SOCK_STREAM;
-    ai.ai_protocol = IPPROTO_TCP;
+    ai.ai_socktype = type;
 
     fd = get_sock (&ai);
     if (fd < 0) {
@@ -303,7 +343,9 @@ hev_sock_server_pfwd (int fd)
     }
 
     res |= bind (fd, (struct sockaddr *)&addr, addrlen);
-    res |= listen (fd, 5);
+    if (type == SOCK_STREAM) {
+        res |= listen (fd, 5);
+    }
     if (res < 0) {
         LOG (E);
         close (fd);

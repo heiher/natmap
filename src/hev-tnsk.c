@@ -88,7 +88,7 @@ tnsk_run (void)
     port = hev_conf_bport ();
     iface = hev_conf_iface ();
 
-    fd = hev_sock_client_http (type, addr, port, http, "80", iface);
+    fd = hev_sock_client_tcp (type, addr, port, http, "80", iface);
     if (fd < 0) {
         LOG (E);
         return;

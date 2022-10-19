@@ -38,14 +38,16 @@ client_task_entry (void *data)
     int timeout = 120000;
     const char *addr;
     const char *port;
+    int mode;
     int sfd;
     int dfd;
 
     sfd = (intptr_t)data;
+    mode = hev_conf_mode ();
     addr = hev_conf_taddr ();
     port = hev_conf_tport ();
 
-    dfd = hev_sock_client_pfwd (addr, port);
+    dfd = hev_sock_client_pfwd (mode, addr, port);
     if (dfd < 0) {
         LOG (W);
         close (sfd);
@@ -63,8 +65,10 @@ static void
 server_task_entry (void *data)
 {
     int fd = (intptr_t)data;
+    int mode;
 
-    fd = hev_sock_server_pfwd (fd);
+    mode = hev_conf_mode ();
+    fd = hev_sock_server_pfwd (fd, mode);
     if (fd < 0) {
         LOG (E);
         hev_xnsk_kill ();

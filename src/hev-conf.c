@@ -15,6 +15,7 @@
 
 #include "hev-conf.h"
 
+static int mode = SOCK_STREAM;
 static int type = AF_UNSPEC;
 static int keep = 30000;
 static int dmon;
@@ -38,6 +39,7 @@ hev_conf_help (void)
         "Options:\n"
         " -4                use IPv4\n"
         " -6                use IPv6\n"
+        " -u                UDP mode\n"
         " -d                run as daemon\n"
         " -i <interface>    network interface\n"
         " -k <interval>     seconds between each keep-alive\n"
@@ -60,13 +62,16 @@ hev_conf_init (int argc, char *argv[])
 {
     int opt;
 
-    while ((opt = getopt (argc, argv, "46dk:s:h:e:b:t:p:i:")) != -1) {
+    while ((opt = getopt (argc, argv, "46udk:s:h:e:b:t:p:i:")) != -1) {
         switch (opt) {
         case '4':
             type = AF_INET;
             break;
         case '6':
             type = AF_INET6;
+            break;
+        case 'u':
+            mode = SOCK_DGRAM;
             break;
         case 'd':
             dmon = 1;
@@ -100,7 +105,11 @@ hev_conf_init (int argc, char *argv[])
         }
     }
 
-    if (!stun || !http) {
+    if (!stun) {
+        return -1;
+    }
+
+    if ((mode == SOCK_STREAM) && !http) {
         return -1;
     }
 
@@ -119,6 +128,12 @@ hev_conf_init (int argc, char *argv[])
     baddr = (type == AF_INET6) ? "::" : "0.0.0.0";
 
     return 0;
+}
+
+int
+hev_conf_mode (void)
+{
+    return mode;
 }
 
 int

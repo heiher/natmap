@@ -2,10 +2,10 @@
 
 [![status](https://gitlab.com/hev/natmap/badges/master/pipeline.svg)](https://gitlab.com/hev/natmap/commits/master)
 
-This project is used to establish a TCP port mapping from ISP NAT public address
-to local private address. If all layers of NAT are full cones (NAT-1), any host
-can access internal services through the mapped public address. In bind mode,
-all traffic does not go through this program.
+This project is used to establish a TCP/UDP port mapping from ISP NAT public
+address to local private address. If all layers of NAT are full cones (NAT-1),
+any host can access internal services through the mapped public address. In bind
+mode, all traffic does not go through this program.
 
 ## How to Build
 
@@ -32,6 +32,7 @@ Usage:
 Options:
  -4                use IPv4
  -6                use IPv6
+ -u                UDP mode
  -d                run as daemon
  -i <interface>    network interface
  -k <interval>     seconds between each keep-alive
@@ -50,10 +51,14 @@ Forward options:
 ### Bind mode
 
 ```bash
+# TCP
 natmap -s stun.stunprotocol.org -h qq.com -b 80 -e /bin/echo
+
+# UDP
+natmap -u -s stun.stunprotocol.org -b 443 -e /bin/echo
 ```
 
-This program will establishs a TCP port mapping in two steps:
+In TCP mode, this program will establishs a TCP port mapping in two steps:
 
 1. Establish a connection with the HTTP server from the specified bind port and
 keep-alive.
@@ -61,8 +66,8 @@ keep-alive.
 public address.
 
 And this program will call the script specified by the argument to inform the
-public address after the TCP port mapping is established. and the script can
-update it to the DNS record for external access.
+public address after the port mapping is established. and the script can update
+to the DNS record for external access.
 
 Please note that you need to open the firewall to allow access to the bind port.
 
@@ -72,7 +77,7 @@ Goto Network -> Firewall -> Traffic Rules
 
 Add a traffic rule:
 
-* Protocol: TCP
+* Protocol: TCP/UDP
 * Source zone: wan
 * Destination zone: Device (input)
 * Destination port: [bind port]
@@ -86,7 +91,11 @@ remotely. This works in Linux kernel 5.6 and later, and needs to run as root.
 ### Forward mode
 
 ```bash
+# TCP
 natmap -s stun.stunprotocol.org -h qq.com -b 80 -t 10.0.0.2 -p 80 -e /bin/echo
+
+# UDP
+natmap -u -s stun.stunprotocol.org -b 443 -t 10.0.0.2 -p 443 -e /bin/echo
 ```
 
 Similar to bind mode, this program will listening on bound port and accepts the
@@ -101,7 +110,7 @@ Goto Network -> Firewall -> Port Forwards
 
 Add a port forward rule:
 
-* Protocol: TCP
+* Protocol: TCP/UDP
 * Source zone: wan
 * External port: [bind port]
 * Destination zone: lan
@@ -111,11 +120,16 @@ Add a port forward rule:
 
 ### Script arguments
 
+```
+{public-addr} {public-port} {ip4p} {private-port} {protocol}
+```
+
 * argv[0]: Script path
 * argv[1]: Public address (IPv4/IPv6)
 * argv[2]: Public port
 * argv[3]: IP4P
-* argv[4]: Bind port
+* argv[4]: Bind port (private port)
+* argv[5]: Protocol (TCP/UDP)
 
 ### IP4P address
 

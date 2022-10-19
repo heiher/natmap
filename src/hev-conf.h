@@ -31,6 +31,15 @@ const char *hev_conf_help (void);
 int hev_conf_init (int argc, char *argv[]);
 
 /**
+ * hev_conf_mode:
+ *
+ * Get transmission protocol mode.
+ *
+ * Returns: returns SOCK_STREAM or SOCK_DGRAM.
+ */
+int hev_conf_mode (void);
+
+/**
  * hev_conf_type:
  *
  * Get network family type.

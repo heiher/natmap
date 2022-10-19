@@ -18,7 +18,7 @@
 
 #include "hev-conf.h"
 #include "hev-misc.h"
-#include "hev-tnsk.h"
+#include "hev-xnsk.h"
 
 #include "hev-main.h"
 
@@ -54,7 +54,7 @@ main (int argc, char *argv[])
 
     hev_task_system_init ();
 
-    hev_tnsk_run ();
+    hev_xnsk_run ();
     hev_task_system_run ();
 
     hev_task_system_fini ();

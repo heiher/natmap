@@ -18,6 +18,14 @@
 #define LOG(T) \
     fprintf (stderr, "[" #T "] %s %s:%d\n", __FUNCTION__, __FILE__, __LINE__);
 
+#ifndef container_of
+#define container_of(ptr, type, member)               \
+    ({                                                \
+        void *__mptr = (void *)(ptr);                 \
+        ((type *)(__mptr - offsetof (type, member))); \
+    })
+#endif
+
 #define io_yielder hev_io_yielder
 
 /**

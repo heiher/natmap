@@ -32,6 +32,7 @@ hev_exec_run (int family, unsigned int maddr[4], unsigned short mport,
 {
     unsigned char *q;
     unsigned char *p;
+    const char *mode;
     const char *path;
     const char *fmt;
     char saddr[32];
@@ -59,8 +60,19 @@ hev_exec_run (int family, unsigned int maddr[4], unsigned short mport,
         ip4p[0] = '\0';
     }
 
+    switch (hev_conf_mode ()) {
+    case SOCK_STREAM:
+        mode = "tcp";
+        break;
+    case SOCK_DGRAM:
+        mode = "udp";
+        break;
+    default:
+        mode = "";
+    }
+
     if (!path) {
-        printf ("%s %s %s %s\n", saddr, sport, ip4p, lport);
+        printf ("%s %s %s %s %s\n", saddr, sport, ip4p, lport, mode);
         fflush (stdout);
         return;
     }
@@ -73,7 +85,7 @@ hev_exec_run (int family, unsigned int maddr[4], unsigned short mport,
         return;
     }
 
-    execl (path, path, saddr, sport, ip4p, lport, NULL);
+    execl (path, path, saddr, sport, ip4p, lport, mode, NULL);
 
     LOG (E);
     exit (-1);
