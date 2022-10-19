@@ -1,28 +1,28 @@
 /*
  ============================================================================
- Name        : hev-pfwd.h
+ Name        : hev-tfwd.h
  Author      : hev <r@hev.cc>
  Copyright   : Copyright (c) 2022 xyz
- Description : Port Fwd
+ Description : TCP forwarder
  ============================================================================
  */
 
-#ifndef __HEV_PFWD_H__
-#define __HEV_PFWD_H__
+#ifndef __HEV_TFWD_H__
+#define __HEV_TFWD_H__
 
 /**
- * hev_pfwd_run:
+ * hev_tfwd_run:
  * @fd: http file descriptor
  *
  * Run server for TCP port forwarding.
  */
-void hev_pfwd_run (int fd);
+void hev_tfwd_run (int fd);
 
 /**
- * hev_pfwd_kill:
+ * hev_tfwd_kill:
  *
- * Force stop HTTP client.
+ * Force stop TCP port forwarding server.
  */
-void hev_pfwd_kill (void);
+void hev_tfwd_kill (void);
 
-#endif /* __HEV_PFWD_H__ */
+#endif /* __HEV_TFWD_H__ */

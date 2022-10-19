@@ -16,10 +16,10 @@
 #include <hev-task-io-socket.h>
 
 #include "hev-conf.h"
-#include "hev-pfwd.h"
 #include "hev-misc.h"
 #include "hev-sock.h"
 #include "hev-stun.h"
+#include "hev-tfwd.h"
 
 #include "hev-http.h"
 
@@ -73,7 +73,7 @@ static void
 http_run (void)
 {
     const char *http;
-    const char *pfwd;
+    const char *tfwd;
     const char *addr;
     const char *port;
     const char *iface;
@@ -82,7 +82,7 @@ http_run (void)
 
     type = hev_conf_type ();
     http = hev_conf_http ();
-    pfwd = hev_conf_taddr ();
+    tfwd = hev_conf_taddr ();
     addr = hev_conf_baddr ();
     port = hev_conf_bport ();
     iface = hev_conf_iface ();
@@ -94,15 +94,15 @@ http_run (void)
     }
 
     hev_stun_run (fd);
-    if (pfwd) {
-        hev_pfwd_run (fd);
+    if (tfwd) {
+        hev_tfwd_run (fd);
     }
 
     timeout = 1;
     http_keep_alive (fd, http);
 
-    if (pfwd) {
-        hev_pfwd_kill ();
+    if (tfwd) {
+        hev_tfwd_kill ();
     }
     close (fd);
 }

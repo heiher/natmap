@@ -47,7 +47,7 @@ int hev_sock_client_stun (int fd, const char *daddr, const char *dport,
  * @addr: destination addr
  * @port: destination port
  *
- * Create a socket for client TCP forwarding.
+ * Create a socket for port forwarding client.
  *
  * Returns: returns file descriptor on successful, otherwise returns -1.
  */
@@ -57,7 +57,7 @@ int hev_sock_client_pfwd (const char *addr, const char *port);
  * hev_sock_server_pfwd:
  * @fd: http socket file descriptor
  *
- * Create a socket for server.
+ * Create a socket for port forwarding server.
  *
  * Returns: returns file descriptor on successful, otherwise returns -1.
  */

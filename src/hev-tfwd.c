@@ -1,9 +1,9 @@
 /*
  ============================================================================
- Name        : hev-pfwd.c
+ Name        : hev-tfwd.c
  Author      : hev <r@hev.cc>
  Copyright   : Copyright (c) 2022 xyz
- Description : Port Fwd
+ Description : TCP forwarder
  ============================================================================
  */
 
@@ -19,7 +19,7 @@
 #include "hev-misc.h"
 #include "hev-sock.h"
 
-#include "hev-pfwd.h"
+#include "hev-tfwd.h"
 
 static HevTask *task;
 static int quit;
@@ -93,14 +93,14 @@ server_task_entry (void *data)
 }
 
 void
-hev_pfwd_run (int fd)
+hev_tfwd_run (int fd)
 {
     task = hev_task_new (-1);
     hev_task_run (task, server_task_entry, (void *)(intptr_t)fd);
 }
 
 void
-hev_pfwd_kill (void)
+hev_tfwd_kill (void)
 {
     quit = -1;
     if (task) {
