@@ -20,6 +20,7 @@
 #include "hev-sock.h"
 #include "hev-stun.h"
 #include "hev-tfwd.h"
+#include "hev-xnsk.h"
 
 #include "hev-tnsk.h"
 
@@ -116,18 +117,20 @@ task_entry (void *data)
     }
 }
 
-void
-hev_tnsk_run (void)
-{
-    task = hev_task_new (-1);
-    hev_task_run (task, task_entry, NULL);
-}
-
-void
-hev_tnsk_kill (void)
+static void
+tnsk_kill (void)
 {
     timeout = 0;
     if (task) {
         hev_task_wakeup (task);
     }
+}
+
+void
+hev_tnsk_run (void)
+{
+    hev_xnsk_init (tnsk_kill);
+
+    task = hev_task_new (-1);
+    hev_task_run (task, task_entry, NULL);
 }

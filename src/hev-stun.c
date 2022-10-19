@@ -20,7 +20,7 @@
 #include "hev-exec.h"
 #include "hev-misc.h"
 #include "hev-sock.h"
-#include "hev-tnsk.h"
+#include "hev-xnsk.h"
 
 #include "hev-stun.h"
 
@@ -180,7 +180,7 @@ task_entry (void *data)
     fd = hev_sock_client_stun (fd, stun, "3478", iface, &bport);
     if (fd < 0) {
         LOG (E);
-        hev_tnsk_kill ();
+        hev_xnsk_kill ();
         return;
     }
 
@@ -188,7 +188,7 @@ task_entry (void *data)
     if (res < 0) {
         LOG (E);
         close (fd);
-        hev_tnsk_kill ();
+        hev_xnsk_kill ();
         return;
     }
 

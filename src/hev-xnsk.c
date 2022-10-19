@@ -1,20 +1,24 @@
 /*
  ============================================================================
- Name        : hev-tnsk.h
+ Name        : hev-xnsk.c
  Author      : hev <r@hev.cc>
  Copyright   : Copyright (c) 2022 xyz
- Description : TCP NAT session keeper
+ Description : NAT session keeper
  ============================================================================
  */
 
-#ifndef __HEV_TNSK_H__
-#define __HEV_TNSK_H__
+#include "hev-xnsk.h"
 
-/**
- * hev_tnsk_run:
- *
- * Run HTTP client to keep-alive.
- */
-void hev_tnsk_run (void);
+static void (*killer) (void);
 
-#endif /* __HEV_TNSK_H__ */
+void
+hev_xnsk_init (void *kill)
+{
+    killer = kill;
+}
+
+void
+hev_xnsk_kill (void)
+{
+    killer ();
+}
