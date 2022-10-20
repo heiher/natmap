@@ -5,4 +5,13 @@ rwildcard=$(foreach d,$(wildcard $1*), \
           $(filter $(subst *,%,$2),$d))
 
 SRCFILES=$(call rwildcard,$(SRCDIR)/,*.c *.S)
-VERSION_CFLAGS=-DCOMMIT_ID=\"$(shell git -C $(SRCDIR) rev-parse --short HEAD)\"
+SRCFILES=$(call rwildcard,$(SRCDIR)/,*.c *.S)
+
+TAG_ID=$(shell git -C $(SRCDIR) tag --points-at HEAD)
+REV_ID=$(shell git -C $(SRCDIR) rev-parse --short HEAD)
+
+ifneq ($(TAG_ID),)
+VERSION_CFLAGS=-DCOMMIT_ID=\"$(TAG_ID)\"
+else
+VERSION_CFLAGS=-DCOMMIT_ID=\"$(REV_ID)\"
+endif
