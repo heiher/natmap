@@ -19,6 +19,12 @@ make ENABLE_STATIC=1
 
 # openwrt
 make CROSS_PREFIX=${openwrt-toolchain}/bin/x86_64-openwrt-linux-
+
+# android
+mkdir natmap
+cd natmap
+git clone --recursive git://github.com/heiher/natmap jni
+ndk-build
 ```
 
 ## How to Use
