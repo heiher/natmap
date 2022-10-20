@@ -69,6 +69,9 @@ struct _StunMappedAddr
     };
 };
 
+static int sfd = -1;
+static int bport;
+
 static int
 cmp_addr (int family, unsigned int *maddr, unsigned short mport,
           unsigned short bport)
@@ -214,34 +217,45 @@ stun_bind (int fd, int mode, int bport)
 static void
 task_entry (void *data)
 {
-    const char *iface;
-    const char *stun;
-    int bport;
+    HevTask *task;
     int mode;
     int res;
-    int fd;
 
-    fd = (intptr_t)data;
-    stun = hev_conf_stun ();
+    task = hev_task_self ();
     mode = hev_conf_mode ();
-    iface = hev_conf_iface ();
 
-    fd = hev_sock_client_stun (fd, mode, stun, "3478", iface, &bport);
-    if (fd < 0) {
-        LOG (E);
-        hev_xnsk_kill ();
-        return;
+    if (sfd < 0) {
+        int fd = (intptr_t)data;
+        const char *iface;
+        const char *stun;
+
+        stun = hev_conf_stun ();
+        iface = hev_conf_iface ();
+
+        sfd = hev_sock_client_stun (fd, mode, stun, "3478", iface, &bport);
+        if (sfd < 0) {
+            LOG (E);
+            hev_xnsk_kill ();
+            return;
+        }
+    } else {
+        hev_task_add_fd (task, sfd, POLLIN | POLLOUT);
     }
 
-    res = stun_bind (fd, mode, bport);
+    res = stun_bind (sfd, mode, bport);
     if (res < 0) {
         LOG (E);
-        close (fd);
+        close (sfd);
         hev_xnsk_kill ();
         return;
     }
 
-    close (fd);
+    if (mode == SOCK_STREAM) {
+        close (sfd);
+        sfd = -1;
+    } else {
+        hev_task_del_fd (task, sfd);
+    }
 }
 
 void
