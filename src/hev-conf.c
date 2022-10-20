@@ -17,7 +17,7 @@
 
 static int mode = SOCK_STREAM;
 static int type = AF_UNSPEC;
-static int keep = 30000;
+static int keep;
 static int dmon;
 
 static const char *stun;
@@ -118,7 +118,8 @@ hev_conf_init (int argc, char *argv[])
     }
 
     if (keep <= 0) {
-        return -1;
+        keep = (mode == SOCK_STREAM) ? 30 : 10;
+        keep *= 1000;
     }
 
     if (!bport) {
