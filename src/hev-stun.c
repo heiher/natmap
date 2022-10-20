@@ -106,6 +106,62 @@ cmp_addr (int family, unsigned int *maddr, unsigned short mport,
     return res;
 }
 
+static ssize_t
+stun_tcp (int fd, StunMessage *msg, void *buf, size_t size)
+{
+    int timeout = 30000;
+    ssize_t len;
+
+    len = hev_task_io_socket_send (fd, msg, sizeof (StunMessage), MSG_WAITALL,
+                                   io_yielder, &timeout);
+    if (len <= 0) {
+        LOG (E);
+        return -1;
+    }
+
+    len = hev_task_io_socket_recv (fd, msg, sizeof (StunMessage), MSG_WAITALL,
+                                   io_yielder, &timeout);
+    if (len <= 0) {
+        LOG (E);
+        return -1;
+    }
+
+    len = htons (msg->size);
+    if ((len <= 0) || (len > size)) {
+        LOG (E);
+        return -1;
+    }
+
+    len = hev_task_io_socket_recv (fd, buf, len, MSG_WAITALL, io_yielder,
+                                   &timeout);
+    return len;
+}
+
+static ssize_t
+stun_udp (int fd, StunMessage *msg, void *buf, size_t size)
+{
+    ssize_t len;
+    int i;
+
+    for (i = 0; i < 10; i++) {
+        int timeout = 3000;
+
+        len = hev_task_io_socket_send (fd, msg, sizeof (StunMessage), 0,
+                                       io_yielder, &timeout);
+        if (len <= 0) {
+            LOG (E);
+            return -1;
+        }
+
+        len = hev_task_io_socket_recv (fd, buf, size, 0, io_yielder, &timeout);
+        if (len > 0) {
+            break;
+        }
+    }
+
+    return len;
+}
+
 static int
 stun_bind (int fd, int mode, int bport)
 {
@@ -113,10 +169,8 @@ stun_bind (int fd, int mode, int bport)
     char buf[bufsize + 32];
     unsigned int *maddr;
     unsigned short mport;
-    int timeout = 30000;
     StunMessage msg;
     int family = 0;
-    int flags = 0;
     int exec;
     int len;
     int pos;
@@ -129,34 +183,13 @@ stun_bind (int fd, int mode, int bport)
     msg.tid[1] = rand ();
     msg.tid[2] = rand ();
 
-    len = hev_task_io_socket_send (fd, &msg, sizeof (msg), MSG_WAITALL,
-                                   io_yielder, &timeout);
-    if (len <= 0) {
-        LOG (E);
-        return -1;
-    }
-
     if (mode == SOCK_STREAM) {
-        len = hev_task_io_socket_recv (fd, &msg, sizeof (msg), MSG_WAITALL,
-                                       io_yielder, &timeout);
-        if (len <= 0) {
-            LOG (E);
-            return -1;
-        }
-
-        len = htons (msg.size);
-        if ((len <= 0) || (len > bufsize)) {
-            LOG (E);
-            return -1;
-        }
-        flags = MSG_WAITALL;
+        len = stun_tcp (fd, &msg, buf, bufsize);
         pos = 0;
     } else {
+        len = stun_udp (fd, &msg, buf, bufsize);
         pos = sizeof (msg);
-        len = bufsize;
     }
-
-    len = hev_task_io_socket_recv (fd, buf, len, flags, io_yielder, &timeout);
     if (len <= 0) {
         LOG (E);
         return -1;
