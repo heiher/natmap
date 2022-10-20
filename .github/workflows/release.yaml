@@ -12,6 +12,7 @@ env:
   OPENWRT_SDK_ARM_32: armvirt/32/openwrt-sdk-21.02.3-armvirt-32_gcc-8.4.0_musl_eabi.Linux-x86_64.tar.xz
   OPENWRT_SDK_ARM_64: armvirt/64/openwrt-sdk-21.02.3-armvirt-64_gcc-8.4.0_musl.Linux-x86_64.tar.xz
   OPENWRT_SDK_MIPSEL: ramips/mt7621/openwrt-sdk-21.02.3-ramips-mt7621_gcc-8.4.0_musl.Linux-x86_64.tar.xz
+  OPENWRT_SDK_MIPS: realtek/generic/openwrt-sdk-21.02.3-realtek-generic_gcc-8.4.0_musl.Linux-x86_64.tar.xz
 
 jobs:
   build:
@@ -78,6 +79,12 @@ jobs:
           make clean
           make CROSS_PREFIX=${STAGING_DIR}/toolchain-mipsel_24kc_gcc-8.4.0_musl/bin/mipsel-openwrt-linux- -j
           cp bin/natmap natmap-openwrt-mipsel
+          wget -q ${{ env.OPENWRT_SDK_URL }}/${{ env.OPENWRT_SDK_MIPS }}
+          tar xf $(basename ${{ env.OPENWRT_SDK_MIPS }})
+          export STAGING_DIR=$(pwd)/$(basename ${{ env.OPENWRT_SDK_MIPS }} .tar.xz)/staging_dir
+          make clean
+          make CROSS_PREFIX=${STAGING_DIR}/toolchain-mips_4kec_gcc-8.4.0_musl/bin/mips-openwrt-linux- -j
+          cp bin/natmap natmap-openwrt-mips
       - name: Release
         id: create_release
         uses: actions/create-release@v1
@@ -177,4 +184,13 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./natmap-openwrt-mipsel
           asset_name: natmap-openwrt-mipsel
+          asset_content_type: application/octet-stream
+      - name: Upload openwrt-mips
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./natmap-openwrt-mips
+          asset_name: natmap-openwrt-mips
           asset_content_type: application/octet-stream
