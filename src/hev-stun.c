@@ -69,6 +69,7 @@ struct _StunMappedAddr
     };
 };
 
+static HevTask *task;
 static int sfd = -1;
 static int bport;
 
@@ -250,11 +251,9 @@ stun_bind (int fd, int mode, int bport)
 static void
 task_entry (void *data)
 {
-    HevTask *task;
     int mode;
     int res;
 
-    task = hev_task_self ();
     mode = hev_conf_mode ();
 
     if (sfd < 0) {
@@ -269,6 +268,7 @@ task_entry (void *data)
         if (sfd < 0) {
             LOG (E);
             hev_xnsk_kill ();
+            task = NULL;
             return;
         }
     } else {
@@ -280,6 +280,7 @@ task_entry (void *data)
         LOG (E);
         close (sfd);
         hev_xnsk_kill ();
+        task = NULL;
         return;
     }
 
@@ -289,13 +290,15 @@ task_entry (void *data)
     } else {
         hev_task_del_fd (task, sfd);
     }
+
+    task = NULL;
 }
 
 void
 hev_stun_run (int fd)
 {
-    HevTask *task;
-
-    task = hev_task_new (-1);
-    hev_task_run (task, task_entry, (void *)(intptr_t)fd);
+    if (!task) {
+        task = hev_task_new (-1);
+        hev_task_run (task, task_entry, (void *)(intptr_t)fd);
+    }
 }
