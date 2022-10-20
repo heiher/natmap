@@ -251,13 +251,13 @@ stun_bind (int fd, int mode, int bport)
 static void
 task_entry (void *data)
 {
+    int fd = (intptr_t)data;
     int mode;
     int res;
 
     mode = hev_conf_mode ();
 
     if (sfd < 0) {
-        int fd = (intptr_t)data;
         const char *iface;
         const char *stun;
 
@@ -273,6 +273,10 @@ task_entry (void *data)
         }
     } else {
         hev_task_add_fd (task, sfd, POLLIN | POLLOUT);
+    }
+
+    if (fd >= 0) {
+        close (fd);
     }
 
     res = stun_bind (sfd, mode, bport);
@@ -298,6 +302,10 @@ void
 hev_stun_run (int fd)
 {
     if (!task) {
+        if (fd >= 0) {
+            fd = hev_task_io_dup (fd);
+        }
+
         task = hev_task_new (-1);
         hev_task_run (task, task_entry, (void *)(intptr_t)fd);
     }

@@ -53,18 +53,18 @@ unsk_run (void)
     if (ufwd) {
         hev_ufwd_run (fd);
     }
+    close (fd);
 
     do {
         if (hev_task_sleep (timeout) > 0) {
             break;
         }
-        hev_stun_run (fd);
+        hev_stun_run (-1);
     } while (timeout);
 
     if (ufwd) {
         hev_ufwd_kill ();
     }
-    close (fd);
 }
 
 static void

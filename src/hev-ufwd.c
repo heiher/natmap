@@ -189,6 +189,10 @@ server_task_entry (void *data)
         return;
     }
 
+    if (fd >= 0) {
+        close (fd);
+    }
+
     quit = 0;
     for (;;) {
         struct sockaddr_storage addr;
@@ -232,6 +236,10 @@ server_task_entry (void *data)
 void
 hev_ufwd_run (int fd)
 {
+    if (fd >= 0) {
+        fd = hev_task_io_dup (fd);
+    }
+
     task = hev_task_new (-1);
     hev_task_run (task, server_task_entry, (void *)(intptr_t)fd);
 }
