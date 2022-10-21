@@ -12,7 +12,7 @@
 
 /**
  * hev_tfwd_run:
- * @fd: http file descriptor
+ * @fd: socket file descriptor
  *
  * Run server for TCP port forwarding.
  */

@@ -12,7 +12,7 @@
 
 /**
  * hev_stun_run:
- * @fd: http file descriptor
+ * @fd: socket file descriptor
  *
  * Run STUN client to get mapped address.
  */
