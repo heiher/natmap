@@ -303,6 +303,11 @@ hev_stun_run (int fd)
 {
     if (!task) {
         if (fd >= 0) {
+            if (sfd >= 0) {
+                close (sfd);
+                sfd = -1;
+            }
+
             fd = hev_task_io_dup (fd);
         }
 
