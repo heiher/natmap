@@ -162,41 +162,26 @@ stun_udp (int fd, StunMessage *msg, void *buf, size_t size)
     return len;
 }
 
-static int
-stun_bind (int fd, int mode, int bport)
+static void
+stun_pack (StunMessage *msg)
 {
-    const int bufsize = 2048;
-    char buf[bufsize + 32];
-    unsigned int *maddr;
-    unsigned short mport;
-    StunMessage msg;
-    int family = 0;
-    int exec;
-    int len;
-    int pos;
+    msg->type = htons (0x0001);
+    msg->size = htons (0x0000);
+    msg->magic = htonl (MAGIC);
+    msg->tid[0] = rand ();
+    msg->tid[1] = rand ();
+    msg->tid[2] = rand ();
+}
+
+static int
+stun_unpack (StunMessage *msg, void *body, size_t len, int pos,
+             unsigned int *addr, unsigned short *port)
+{
+    int family = -1;
     int i;
 
-    msg.type = htons (0x0001);
-    msg.size = htons (0x0000);
-    msg.magic = htonl (MAGIC);
-    msg.tid[0] = rand ();
-    msg.tid[1] = rand ();
-    msg.tid[2] = rand ();
-
-    if (mode == SOCK_STREAM) {
-        len = stun_tcp (fd, &msg, buf, bufsize);
-        pos = 0;
-    } else {
-        len = stun_udp (fd, &msg, buf, bufsize);
-        pos = sizeof (msg);
-    }
-    if (len <= 0) {
-        LOG (E);
-        return -1;
-    }
-
     for (i = pos; i < len;) {
-        StunAttribute *a = (StunAttribute *)&buf[i];
+        StunAttribute *a = (StunAttribute *)(body + i);
         StunMappedAddr *m = (StunMappedAddr *)(a + 1);
         int size;
 
@@ -207,19 +192,20 @@ stun_bind (int fd, int mode, int bport)
         }
 
         if (a->type == htons (MAPPED_ADDR)) {
+            *port = m->port;
+            addr[0] = m->addr[0];
+            addr[1] = m->addr[1];
+            addr[2] = m->addr[2];
+            addr[3] = m->addr[3];
             family = m->family;
-            mport = m->port;
-            maddr = m->addr;
             break;
         } else if (a->type == htons (XOR_MAPPED_ADDR)) {
+            *port = m->port ^ msg->magic;
+            addr[0] = m->addr[0] ^ msg->magic;
+            addr[1] = m->addr[1] ^ msg->tid[0];
+            addr[2] = m->addr[2] ^ msg->tid[1];
+            addr[3] = m->addr[3] ^ msg->tid[2];
             family = m->family;
-            mport = m->port;
-            maddr = m->addr;
-            mport ^= msg.magic;
-            maddr[0] ^= msg.magic;
-            maddr[1] ^= msg.tid[0];
-            maddr[2] ^= msg.tid[1];
-            maddr[3] ^= msg.tid[2];
             break;
         }
 
@@ -238,8 +224,43 @@ stun_bind (int fd, int mode, int bport)
         return -1;
     }
 
-    exec = cmp_addr (family, maddr, mport, bport);
+    return family;
+}
 
+static int
+stun_bind (int fd, int mode, int bport)
+{
+    const int bufsize = 2048;
+    char buf[bufsize + 32];
+    unsigned int maddr[4];
+    unsigned short mport;
+    StunMessage msg;
+    int family = 0;
+    int exec;
+    int len;
+    int pos;
+
+    stun_pack (&msg);
+
+    if (mode == SOCK_STREAM) {
+        len = stun_tcp (fd, &msg, buf, bufsize);
+        pos = 0;
+    } else {
+        len = stun_udp (fd, &msg, buf, bufsize);
+        pos = sizeof (msg);
+    }
+    if (len <= 0) {
+        LOG (E);
+        return -1;
+    }
+
+    family = stun_unpack (&msg, buf, len, pos, maddr, &mport);
+    if (family < 0) {
+        LOG (E);
+        return -1;
+    }
+
+    exec = cmp_addr (family, maddr, mport, bport);
     if (exec) {
         hev_exec_run (family, maddr, mport, bport);
     }
