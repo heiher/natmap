@@ -23,9 +23,6 @@
 
 #include "hev-unsk.h"
 
-static HevTask *task;
-static int timeout;
-
 static void
 unsk_run (void)
 {
@@ -33,6 +30,7 @@ unsk_run (void)
     const char *addr;
     const char *port;
     const char *iface;
+    int timeout;
     int type;
     int fd;
 
@@ -79,15 +77,13 @@ task_entry (void *data)
 static void
 unsk_kill (void)
 {
-    timeout = 0;
-    if (task) {
-        hev_task_wakeup (task);
-    }
 }
 
 void
 hev_unsk_run (void)
 {
+    HevTask *task;
+
     hev_xnsk_init (unsk_kill);
 
     task = hev_task_new (-1);
