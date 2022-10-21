@@ -38,17 +38,7 @@ struct _Session
 };
 
 static HevRBTree sessions;
-static HevTask *task;
-static int quit;
 static int sfd;
-
-static int
-yielder (HevTaskYieldType type, void *data)
-{
-    hev_task_yield (type);
-
-    return quit;
-}
 
 static Session *
 session_find (struct sockaddr *saddr, socklen_t len)
@@ -178,24 +168,22 @@ client_task_entry (void *data)
 static void
 server_task_entry (void *data)
 {
-    int fd = (intptr_t)data;
     int mode;
+    int tfd;
 
+    tfd = (intptr_t)data;
     mode = hev_conf_mode ();
-    sfd = hev_sock_server_pfwd (fd, mode);
+
+    sfd = hev_sock_server_pfwd (tfd, mode);
+    close (tfd);
     if (sfd < 0) {
         LOG (E);
         hev_xnsk_kill ();
         return;
     }
 
-    if (fd >= 0) {
-        close (fd);
-    }
-
-    quit = 0;
     for (;;) {
-        struct sockaddr_storage addr;
+        struct sockaddr_storage addr = { 0 };
         socklen_t alen = sizeof (addr);
         const int bufsize = 2048;
         struct sockaddr *pa;
@@ -205,11 +193,8 @@ server_task_entry (void *data)
 
         pa = (struct sockaddr *)&addr;
         len = hev_task_io_socket_recvfrom (sfd, buf, bufsize, 0, pa, &alen,
-                                           yielder, NULL);
+                                           NULL, NULL);
         if (len < 0) {
-            if (len != -2) {
-                LOG (E);
-            }
             break;
         }
 
@@ -230,25 +215,19 @@ server_task_entry (void *data)
     }
 
     close (sfd);
-    task = NULL;
 }
 
 void
 hev_ufwd_run (int fd)
 {
-    if (fd >= 0) {
-        fd = hev_task_io_dup (fd);
-    }
+    HevTask *task;
 
     task = hev_task_new (-1);
+    fd = hev_task_io_dup (fd);
     hev_task_run (task, server_task_entry, (void *)(intptr_t)fd);
 }
 
 void
 hev_ufwd_kill (void)
 {
-    quit = -1;
-    if (task) {
-        hev_task_wakeup (task);
-    }
 }
