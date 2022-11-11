@@ -72,6 +72,7 @@ server_task_entry (void *data)
     if (fd < 0) {
         LOG (E);
         hev_xnsk_kill ();
+        task = NULL;
         return;
     }
 
