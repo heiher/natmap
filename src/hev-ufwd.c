@@ -38,7 +38,17 @@ struct _Session
 };
 
 static HevRBTree sessions;
+static HevTask *task;
+static int quit;
 static int sfd;
+
+static int
+yielder (HevTaskYieldType type, void *data)
+{
+    hev_task_yield (type);
+
+    return quit;
+}
 
 static Session *
 session_find (struct sockaddr *saddr, socklen_t len)
@@ -151,14 +161,17 @@ client_task_entry (void *data)
         s->active = 0;
         len = hev_task_io_socket_recvfrom (s->fd, buf, bufsize, 0, NULL, NULL,
                                            io_yielder, &timeout);
-        if (len < 0) {
+        if (len <= 0) {
             if ((len == -2) && s->active) {
                 continue;
             }
             break;
         }
 
-        sendto (sfd, buf, len, 0, pa, s->alen);
+        len = sendto (sfd, buf, len, 0, pa, s->alen);
+        if (len <= 0) {
+            break;
+        }
     }
 
     session_del (s);
@@ -179,9 +192,11 @@ server_task_entry (void *data)
     if (sfd < 0) {
         LOG (E);
         hev_xnsk_kill ();
+        task = NULL;
         return;
     }
 
+    quit = 0;
     for (;;) {
         struct sockaddr_storage addr = { 0 };
         socklen_t alen = sizeof (addr);
@@ -193,7 +208,7 @@ server_task_entry (void *data)
 
         pa = (struct sockaddr *)&addr;
         len = hev_task_io_socket_recvfrom (sfd, buf, bufsize, 0, pa, &alen,
-                                           NULL, NULL);
+                                           yielder, NULL);
         if (len < 0) {
             break;
         }
@@ -206,7 +221,7 @@ server_task_entry (void *data)
                 continue;
             }
             session_add (s);
-            hev_task_del_fd (hev_task_self (), s->fd);
+            hev_task_del_fd (task, s->fd);
             hev_task_run (s->task, client_task_entry, s);
         }
 
@@ -215,13 +230,13 @@ server_task_entry (void *data)
     }
 
     close (sfd);
+    task = NULL;
+    sfd = -1;
 }
 
 void
 hev_ufwd_run (int fd)
 {
-    HevTask *task;
-
     task = hev_task_new (-1);
     fd = hev_task_io_dup (fd);
     hev_task_run (task, server_task_entry, (void *)(intptr_t)fd);
@@ -230,4 +245,8 @@ hev_ufwd_run (int fd)
 void
 hev_ufwd_kill (void)
 {
+    quit = -1;
+    if (task) {
+        hev_task_wakeup (task);
+    }
 }
