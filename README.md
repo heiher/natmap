@@ -149,6 +149,7 @@ ports for easy distribution through DNS AAAA records.
 ## Contributors
 * **hev** - https://hev.cc
 * **mike wang** - https://github.com/mikewang000000
+* **muink** - https://github.com/muink
 
 ## License
 MIT
