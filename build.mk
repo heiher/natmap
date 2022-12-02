@@ -7,11 +7,13 @@ rwildcard=$(foreach d,$(wildcard $1*), \
 SRCFILES=$(call rwildcard,$(SRCDIR)/,*.c *.S)
 SRCFILES=$(call rwildcard,$(SRCDIR)/,*.c *.S)
 
-TAG_ID=$(shell git -C $(SRCDIR) tag --points-at HEAD)
-REV_ID=$(shell git -C $(SRCDIR) rev-parse --short HEAD)
-
-ifneq ($(TAG_ID),)
-VERSION_CFLAGS=-DCOMMIT_ID=\"$(TAG_ID)\"
-else
-VERSION_CFLAGS=-DCOMMIT_ID=\"$(REV_ID)\"
+ifeq ($(REV_ID),)
+  REV_ID=$(shell git -C $(SRCDIR) tag --points-at HEAD)
+  ifeq ($(REV_ID),)
+    REV_ID=$(shell git -C $(SRCDIR) rev-parse --short HEAD)
+  endif
+  ifeq ($(REV_ID),)
+    REV_ID=unknown
+  endif
 endif
+VERSION_CFLAGS=-DCOMMIT_ID=\"$(REV_ID)\"
