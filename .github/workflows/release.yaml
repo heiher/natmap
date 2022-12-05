@@ -56,8 +56,13 @@ jobs:
           tar xf ${{ env.MUSL_SDK_RISCV_64 }}
       - name: Gen Source
         run: |
+          REV_ID=$(git tag --points-at HEAD)
+          if [ -z "${REV_ID}" ]; then
+            REV_ID=$(git rev-parse --short HEAD)
+          fi
           mkdir -p natmap-${{ github.ref_name }}
           git ls-files --recurse-submodules | tar c -O -T- | tar x -C natmap-${{ github.ref_name }}
+          echo ${REV_ID} > natmap-${{ github.ref_name }}/.version
           tar caf natmap-${{ github.ref_name }}.tar.gz natmap-${{ github.ref_name }}
       - name: Build Linux
         run: |
