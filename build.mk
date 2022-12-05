@@ -8,7 +8,12 @@ SRCFILES=$(call rwildcard,$(SRCDIR)/,*.c *.S)
 SRCFILES=$(call rwildcard,$(SRCDIR)/,*.c *.S)
 
 ifeq ($(REV_ID),)
-  REV_ID=$(shell git -C $(SRCDIR) tag --points-at HEAD)
+  ifneq (,$(wildcard .version))
+    REV_ID=$(shell cat .version)
+  endif
+  ifeq ($(REV_ID),)
+    REV_ID=$(shell git -C $(SRCDIR) tag --points-at HEAD)
+  endif
   ifeq ($(REV_ID),)
     REV_ID=$(shell git -C $(SRCDIR) rev-parse --short HEAD)
   endif
