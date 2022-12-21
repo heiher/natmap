@@ -61,11 +61,13 @@ get_sock (struct addrinfo *ai)
     }
 
     res |= setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (int));
+    if (res < 0) {
+        LOG (W);
+    }
+
     res |= setsockopt (fd, SOL_SOCKET, SO_REUSEPORT, &reuse, sizeof (int));
     if (res < 0) {
-        LOG (E);
-        close (fd);
-        return -1;
+        LOG (W);
     }
 
     return fd;
