@@ -52,7 +52,11 @@ main (int argc, char *argv[])
     signal (SIGPIPE, SIG_IGN);
     setrlimit (RLIMIT_NOFILE, &limit);
 
-    hev_task_system_init ();
+    res = hev_task_system_init ();
+    if (res < 0) {
+        LOG (E);
+        return -2;
+    }
 
     hev_xnsk_run ();
     hev_task_system_run ();
