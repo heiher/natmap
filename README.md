@@ -17,8 +17,8 @@ make
 # statically link
 make ENABLE_STATIC=1
 
-# openwrt
-make CROSS_PREFIX=${openwrt-toolchain}/bin/x86_64-openwrt-linux-
+# cross compile
+make CROSS_PREFIX=${cross-toolchain}/bin/x86_64-unknown-linux-
 
 # android
 mkdir natmap
@@ -58,7 +58,7 @@ Forward options:
 
 ```bash
 # TCP
-natmap -s stun.stunprotocol.org -h qq.com -b 80
+natmap -s stun.stunprotocol.org -h example.com -b 80
 
 # UDP
 natmap -u -s stun.stunprotocol.org -b 443
@@ -98,7 +98,7 @@ remotely. This works in Linux kernel 5.6 and later, and needs to run as root.
 
 ```bash
 # TCP
-natmap -s stun.stunprotocol.org -h qq.com -b 80 -t 10.0.0.2 -p 80
+natmap -s stun.stunprotocol.org -h example.com -b 80 -t 10.0.0.2 -p 80
 
 # UDP
 natmap -u -s stun.stunprotocol.org -b 443 -t 10.0.0.2 -p 443
