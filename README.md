@@ -8,6 +8,8 @@ address to local private address. If all layers of NAT are full cones (NAT-1),
 any host can access internal services through the mapped public address. In bind
 mode, all traffic does not go through this program.
 
+[中文文档](https://github.com/heiher/natmap/wiki)
+
 ## How to Build
 
 ```bash
