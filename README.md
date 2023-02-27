@@ -61,7 +61,7 @@ Forward options:
 natmap -s stunserver.stunprotocol.org -h example.com -b 80
 
 # UDP
-natmap -u -s stunserver.stunprotocol.org -b 443
+natmap -u -s stun.qq.com -b 443
 ```
 
 In TCP mode, this program will establishs a TCP port mapping in two steps:
@@ -101,7 +101,7 @@ remotely. This works in Linux kernel 5.6 and later, and needs to run as root.
 natmap -s stunserver.stunprotocol.org -h example.com -b 80 -t 10.0.0.2 -p 80
 
 # UDP
-natmap -u -s stunserver.stunprotocol.org -b 443 -t 10.0.0.2 -p 443
+natmap -u -s stun.qq.com -b 443 -t 10.0.0.2 -p 443
 ```
 
 Similar to bind mode, this program will listening on bound port and accepts the
