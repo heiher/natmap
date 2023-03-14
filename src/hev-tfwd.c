@@ -100,6 +100,10 @@ server_task_entry (void *data)
 void
 hev_tfwd_run (int fd)
 {
+    if (task) {
+        return;
+    }
+
     task = hev_task_new (-1);
     hev_task_run (task, server_task_entry, (void *)(intptr_t)fd);
 }

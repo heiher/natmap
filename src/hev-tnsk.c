@@ -26,6 +26,7 @@
 
 static HevTask *task;
 static int timeout;
+static int fd;
 
 static void
 http_keep_alive (int fd, const char *http)
@@ -71,6 +72,16 @@ http_keep_alive (int fd, const char *http)
 }
 
 static void
+stun_handler (void)
+{
+    const char *tfwd = hev_conf_taddr ();
+
+    if (tfwd) {
+        hev_tfwd_run (fd);
+    }
+}
+
+static void
 tnsk_run (void)
 {
     const char *http;
@@ -79,7 +90,6 @@ tnsk_run (void)
     const char *port;
     const char *iface;
     int type;
-    int fd;
 
     type = hev_conf_type ();
     http = hev_conf_http ();
@@ -94,10 +104,7 @@ tnsk_run (void)
         return;
     }
 
-    hev_stun_run (fd);
-    if (tfwd) {
-        hev_tfwd_run (fd);
-    }
+    hev_stun_run (fd, stun_handler);
 
     timeout = 1;
     http_keep_alive (fd, http);

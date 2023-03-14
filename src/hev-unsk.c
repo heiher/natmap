@@ -25,6 +25,30 @@
 
 static HevTask *task;
 static int timeout;
+static int fd;
+
+static void
+unsk_close (void)
+{
+    if (fd < 0) {
+        return;
+    }
+
+    close (fd);
+    fd = -1;
+}
+
+static void
+stun_handler (void)
+{
+    const char *ufwd = hev_conf_taddr ();
+
+    if (ufwd) {
+        hev_ufwd_run (fd);
+    }
+
+    unsk_close ();
+}
 
 static void
 unsk_run (void)
@@ -34,7 +58,6 @@ unsk_run (void)
     const char *port;
     const char *iface;
     int type;
-    int fd;
 
     type = hev_conf_type ();
     ufwd = hev_conf_taddr ();
@@ -49,22 +72,19 @@ unsk_run (void)
         return;
     }
 
-    hev_stun_run (fd);
-    if (ufwd) {
-        hev_ufwd_run (fd);
-    }
-    close (fd);
+    hev_stun_run (fd, stun_handler);
 
     do {
         if (hev_task_sleep (timeout) > 0) {
             break;
         }
-        hev_stun_run (-1);
+        hev_stun_run (-1, NULL);
     } while (timeout);
 
     if (ufwd) {
         hev_ufwd_kill ();
     }
+    unsk_close ();
 }
 
 static void

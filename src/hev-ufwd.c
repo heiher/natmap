@@ -237,6 +237,10 @@ server_task_entry (void *data)
 void
 hev_ufwd_run (int fd)
 {
+    if (task) {
+        return;
+    }
+
     task = hev_task_new (-1);
     fd = hev_task_io_dup (fd);
     hev_task_run (task, server_task_entry, (void *)(intptr_t)fd);

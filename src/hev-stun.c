@@ -70,6 +70,7 @@ struct _StunMappedAddr
 };
 
 static HevTask *task;
+static HevStunHandler handler;
 
 static int
 cmp_addr (int family, unsigned int *maddr, unsigned short mport,
@@ -259,6 +260,8 @@ stun_bind (int fd, int mode, int bport)
         return -1;
     }
 
+    handler ();
+
     exec = cmp_addr (family, maddr, mport, bport);
     if (exec) {
         hev_exec_run (family, maddr, mport, bport);
@@ -315,13 +318,14 @@ task_entry (void *data)
 }
 
 void
-hev_stun_run (int fd)
+hev_stun_run (int fd, HevStunHandler _handler)
 {
     if (task) {
         hev_task_wakeup (task);
         return;
     }
 
+    handler = _handler;
     task = hev_task_new (-1);
     fd = hev_task_io_dup (fd);
     hev_task_run (task, task_entry, (void *)(intptr_t)fd);

@@ -48,7 +48,6 @@ get_sock (struct addrinfo *ai)
     const int reuse = 1;
     int family;
     int socktype;
-    int res = 0;
     int fd;
 
     family = ai->ai_family;
@@ -60,15 +59,8 @@ get_sock (struct addrinfo *ai)
         return -1;
     }
 
-    res |= setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (int));
-    if (res < 0) {
-        LOG (W);
-    }
-
-    res |= setsockopt (fd, SOL_SOCKET, SO_REUSEPORT, &reuse, sizeof (int));
-    if (res < 0) {
-        LOG (W);
-    }
+    setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (int));
+    setsockopt (fd, SOL_SOCKET, SO_REUSEPORT, &reuse, sizeof (int));
 
     return fd;
 }
