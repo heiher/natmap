@@ -7,6 +7,7 @@
  ============================================================================
  */
 
+#include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -48,6 +49,7 @@ get_sock (struct addrinfo *ai)
     const int reuse = 1;
     int family;
     int socktype;
+    int res;
     int fd;
 
     family = ai->ai_family;
@@ -57,6 +59,11 @@ get_sock (struct addrinfo *ai)
     if (fd < 0) {
         LOG (E);
         return -1;
+    }
+
+    res = fcntl (fd, F_SETFD, fcntl (fd, F_GETFD) | FD_CLOEXEC);
+    if (res < 0) {
+        LOG (W);
     }
 
     setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (int));
