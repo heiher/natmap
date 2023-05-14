@@ -100,7 +100,7 @@ tnsk_run (void)
 
     fd = hev_sock_client_tcp (type, addr, port, http, "80", iface);
     if (fd < 0) {
-        LOG (E);
+        LOGV (E, "%s", "Start TCP keep-alive service failed.");
         return;
     }
 

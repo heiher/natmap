@@ -7,6 +7,7 @@
  ============================================================================
  */
 
+#include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
@@ -148,7 +149,7 @@ hev_sock_client_tcp (int family, const char *saddr, const char *sport,
         hev_reuse_port (sport);
         res = bind (fd, sai->ai_addr, sai->ai_addrlen);
         if (res < 0) {
-            LOG (E);
+            LOGV (E, "%s", strerror (errno));
             freeaddrinfo (sai);
             freeaddrinfo (dai);
             close (fd);
@@ -163,7 +164,13 @@ hev_sock_client_tcp (int family, const char *saddr, const char *sport,
                                       io_yielder, &timeout);
     freeaddrinfo (dai);
     if (res < 0) {
-        LOG (E);
+        if (errno == EADDRNOTAVAIL) {
+            LOGV (E, "%s",
+                  "Cannot assign requested address, "
+                  "Please check is another instance exists or wait a minute.");
+        } else {
+            LOGV (E, "%s", strerror (errno));
+        }
         close (fd);
         return -1;
     }
@@ -205,7 +212,7 @@ hev_sock_client_udp (int family, const char *saddr, const char *sport,
         hev_reuse_port (sport);
         res = bind (fd, sai->ai_addr, sai->ai_addrlen);
         if (res < 0) {
-            LOG (E);
+            LOGV (E, "%s", strerror (errno));
             freeaddrinfo (sai);
             close (fd);
             return -1;

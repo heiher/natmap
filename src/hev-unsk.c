@@ -68,7 +68,7 @@ unsk_run (void)
 
     fd = hev_sock_client_udp (type, addr, port, iface);
     if (fd < 0) {
-        LOG (E);
+        LOGV (E, "%s", "Start UDP keep-alive service failed.");
         return;
     }
 

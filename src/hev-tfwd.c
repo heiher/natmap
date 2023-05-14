@@ -70,7 +70,7 @@ server_task_entry (void *data)
     mode = hev_conf_mode ();
     fd = hev_sock_server_pfwd (fd, mode);
     if (fd < 0) {
-        LOG (E);
+        LOGV (E, "%s", "Start TCP forward service failed.");
         hev_xnsk_kill ();
         task = NULL;
         return;

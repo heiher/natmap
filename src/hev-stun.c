@@ -115,14 +115,14 @@ stun_tcp (int fd, StunMessage *msg, void *buf, size_t size)
     len = hev_task_io_socket_send (fd, msg, sizeof (StunMessage), MSG_WAITALL,
                                    io_yielder, &timeout);
     if (len <= 0) {
-        LOG (E);
+        LOGV (E, "%s", "STUN TCP send failed.");
         return -1;
     }
 
     len = hev_task_io_socket_recv (fd, msg, sizeof (StunMessage), MSG_WAITALL,
                                    io_yielder, &timeout);
     if (len <= 0) {
-        LOG (E);
+        LOGV (E, "%s", "STUN TCP recv failed.");
         return -1;
     }
 
@@ -149,7 +149,7 @@ stun_udp (int fd, StunMessage *msg, void *buf, size_t size)
         len = hev_task_io_socket_send (fd, msg, sizeof (StunMessage), 0,
                                        io_yielder, &timeout);
         if (len <= 0) {
-            LOG (E);
+            LOGV (E, "%s", "STUN UDP send failed.");
             return -1;
         }
 
@@ -289,7 +289,7 @@ task_entry (void *data)
     fd = hev_sock_client_stun (tfd, mode, stun, "3478", iface, &bport);
     close (tfd);
     if (fd < 0) {
-        LOG (E);
+        LOGV (E, "%s", "Start STUN service failed.");
         hev_xnsk_kill ();
         task = NULL;
         return;

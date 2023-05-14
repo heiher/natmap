@@ -190,7 +190,7 @@ server_task_entry (void *data)
     sfd = hev_sock_server_pfwd (tfd, mode);
     close (tfd);
     if (sfd < 0) {
-        LOG (E);
+        LOGV (E, "%s", "Start UDP forward service failed.");
         hev_xnsk_kill ();
         task = NULL;
         return;

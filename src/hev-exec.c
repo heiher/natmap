@@ -87,6 +87,6 @@ hev_exec_run (int family, unsigned int maddr[4], unsigned short mport,
 
     execl (path, path, saddr, sport, ip4p, lport, mode, NULL);
 
-    LOG (E);
+    LOGV (E, "%s", "Run script failed, Please check is it executable?");
     exit (-1);
 }
