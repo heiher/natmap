@@ -18,6 +18,10 @@
 #define LOG(T) \
     fprintf (stderr, "[" #T "] %s %s:%d\n", __FUNCTION__, __FILE__, __LINE__);
 
+#define LOGV(T, F, ...)                                                   \
+    fprintf (stderr, "[" #T "] %s %s:%d " F "\n", __FUNCTION__, __FILE__, \
+             __LINE__, __VA_ARGS__);
+
 #ifndef container_of
 #define container_of(ptr, type, member)               \
     ({                                                \
