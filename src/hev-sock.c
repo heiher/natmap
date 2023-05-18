@@ -167,7 +167,8 @@ hev_sock_client_tcp (int family, const char *saddr, const char *sport,
         if (errno == EADDRNOTAVAIL) {
             LOGV (E, "%s",
                   "Cannot assign requested address, "
-                  "Please check is another instance exists or wait a minute.");
+                  "Please check is another instance exists or wait a minute. "
+                  "More: https://github.com/heiher/natmap/issues/27");
         } else {
             LOGV (E, "%s", strerror (errno));
         }
