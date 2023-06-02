@@ -127,7 +127,7 @@ Add a port forward rule:
 ### Script arguments
 
 ```
-{public-addr} {public-port} {ip4p} {private-port} {protocol}
+{public-addr} {public-port} {ip4p} {private-port} {protocol} {private-addr}
 ```
 
 * argv[0]: Script path
@@ -136,6 +136,7 @@ Add a port forward rule:
 * argv[3]: IP4P
 * argv[4]: Bind port (private port)
 * argv[5]: Protocol (TCP/UDP)
+* argv[6]: Private address (IPv4/IPv6)
 
 ### IP4P address
 
