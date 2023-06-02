@@ -48,6 +48,7 @@ int hev_sock_client_udp (int family, const char *saddr, const char *sport,
  * @daddr: destination addr
  * @dport: destination port
  * @iface: network interface
+ * @baddr: [out] bound addr
  * @bport: [out] bound port
  *
  * Create a socket for STUN client.
@@ -55,7 +56,8 @@ int hev_sock_client_udp (int family, const char *saddr, const char *sport,
  * Returns: returns file descriptor on successful, otherwise returns -1.
  */
 int hev_sock_client_stun (int fd, int type, const char *daddr,
-                          const char *dport, const char *iface, int *bport);
+                          const char *dport, const char *iface,
+                          unsigned int baddr[4], int *bport);
 
 /**
  * hev_sock_client_pfwd:

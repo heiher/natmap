@@ -73,10 +73,11 @@ static HevTask *task;
 static HevStunHandler handler;
 
 static int
-cmp_addr (int family, unsigned int *maddr, unsigned short mport,
-          unsigned short bport)
+cmp_addr (int family, unsigned int maddr[4], unsigned short mport,
+          unsigned int baddr[4], unsigned short bport)
 {
     static unsigned int pmaddr[4];
+    static unsigned int pbaddr[4];
     static unsigned short pmport;
     static unsigned short pbport;
     int res = 0;
@@ -96,10 +97,15 @@ cmp_addr (int family, unsigned int *maddr, unsigned short mport,
         res |= memcmp (pmaddr, maddr, 4);
         memcpy (&pmaddr[0], maddr, 4);
         memset (&pmaddr[1], 0, 12);
+        res |= memcmp (pbaddr, baddr, 4);
+        memcpy (&pbaddr[0], baddr, 4);
+        memset (&pbaddr[1], 0, 12);
         break;
     case AF_INET6:
         res |= memcmp (pmaddr, maddr, 16);
         memcpy (pmaddr, maddr, 16);
+        res |= memcmp (pbaddr, baddr, 16);
+        memcpy (pbaddr, baddr, 16);
         break;
     }
 
@@ -228,7 +234,7 @@ stun_unpack (StunMessage *msg, void *body, size_t len, int pos,
 }
 
 static int
-stun_bind (int fd, int mode, int bport)
+stun_bind (int fd, int mode, unsigned int baddr[4], int bport)
 {
     const int bufsize = 2048;
     char buf[bufsize + 32];
@@ -262,9 +268,9 @@ stun_bind (int fd, int mode, int bport)
 
     handler ();
 
-    exec = cmp_addr (family, maddr, mport, bport);
+    exec = cmp_addr (family, maddr, mport, baddr, bport);
     if (exec) {
-        hev_exec_run (family, maddr, mport, bport);
+        hev_exec_run (family, maddr, mport, baddr, bport);
     }
 
     return 0;
@@ -273,6 +279,7 @@ stun_bind (int fd, int mode, int bport)
 static void
 task_entry (void *data)
 {
+    unsigned int baddr[4];
     const char *iface;
     const char *stun;
     int bport;
@@ -286,7 +293,7 @@ task_entry (void *data)
     stun = hev_conf_stun ();
     iface = hev_conf_iface ();
 
-    fd = hev_sock_client_stun (tfd, mode, stun, "3478", iface, &bport);
+    fd = hev_sock_client_stun (tfd, mode, stun, "3478", iface, baddr, &bport);
     close (tfd);
     if (fd < 0) {
         LOGV (E, "%s", "Start STUN service failed.");
@@ -296,14 +303,14 @@ task_entry (void *data)
     }
 
     if (mode == SOCK_STREAM) {
-        res = stun_bind (fd, mode, bport);
+        res = stun_bind (fd, mode, baddr, bport);
         if (res < 0) {
             LOG (E);
             hev_xnsk_kill ();
         }
     } else {
         for (;;) {
-            res = stun_bind (fd, mode, bport);
+            res = stun_bind (fd, mode, baddr, bport);
             if (res < 0) {
                 LOG (E);
                 hev_xnsk_kill ();

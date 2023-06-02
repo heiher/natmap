@@ -226,7 +226,7 @@ hev_sock_client_udp (int family, const char *saddr, const char *sport,
 
 int
 hev_sock_client_stun (int fd, int type, const char *daddr, const char *dport,
-                      const char *iface, int *bport)
+                      const char *iface, unsigned int baddr[4], int *bport)
 {
     struct addrinfo sai;
     struct addrinfo *dai;
@@ -273,12 +273,6 @@ hev_sock_client_stun (int fd, int type, const char *daddr, const char *dport,
         return -1;
     }
 
-    if (saddr.ss_family == AF_INET) {
-        *bport = ((struct sockaddr_in *)&saddr)->sin_port;
-    } else if (saddr.ss_family == AF_INET6) {
-        *bport = ((struct sockaddr_in6 *)&saddr)->sin6_port;
-    }
-
     hev_task_add_fd (hev_task_self (), fd, POLLIN | POLLOUT);
 
     res = hev_task_io_socket_connect (fd, dai->ai_addr, dai->ai_addrlen,
@@ -288,6 +282,23 @@ hev_sock_client_stun (int fd, int type, const char *daddr, const char *dport,
         LOG (E);
         close (fd);
         return -1;
+    }
+
+    res = getsockname (fd, (struct sockaddr *)&saddr, &saddrlen);
+    if (res < 0) {
+        LOG (E);
+        close (fd);
+        return -1;
+    }
+
+    if (saddr.ss_family == AF_INET) {
+        struct sockaddr_in *pa = (struct sockaddr_in *)&saddr;
+        memcpy (baddr, &pa->sin_addr, 4);
+        *bport = pa->sin_port;
+    } else if (saddr.ss_family == AF_INET6) {
+        struct sockaddr_in6 *pa = (struct sockaddr_in6 *)&saddr;
+        memcpy (baddr, &pa->sin6_addr, 16);
+        *bport = pa->sin6_port;
     }
 
     return fd;
