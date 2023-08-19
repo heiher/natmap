@@ -78,7 +78,7 @@ const char *hev_conf_http (void);
 /**
  * hev_conf_path:
  *
- * Get script path that invoked on TCP port mapping created.
+ * Get script path that invoked on port mapping created.
  *
  * Returns: returns string.
  */
@@ -87,7 +87,7 @@ const char *hev_conf_path (void);
 /**
  * hev_conf_baddr:
  *
- * Get bind address for TCP port mapping.
+ * Get bind address for port mapping.
  *
  * Returns: returns string.
  */
@@ -96,7 +96,7 @@ const char *hev_conf_baddr (void);
 /**
  * hev_conf_bport:
  *
- * Get bind port for TCP port mapping.
+ * Get bind port for port mapping.
  *
  * Returns: returns string.
  */
@@ -105,7 +105,7 @@ const char *hev_conf_bport (void);
 /**
  * hev_conf_taddr:
  *
- * Get target address for TCP port forwarding.
+ * Get target address for port forwarding.
  *
  * Returns: returns string.
  */
@@ -114,7 +114,7 @@ const char *hev_conf_taddr (void);
 /**
  * hev_conf_tport:
  *
- * Get target port for TCP port forwarding.
+ * Get target port for port forwarding.
  *
  * Returns: returns string.
  */
