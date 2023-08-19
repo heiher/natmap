@@ -121,6 +121,16 @@ const char *hev_conf_taddr (void);
 const char *hev_conf_tport (void);
 
 /**
+ * hev_conf_mport:
+ * @port: port number
+ *
+ * Get/Set public port of port mapping.
+ *
+ * Returns: returns string.
+ */
+const char *hev_conf_mport (int port);
+
+/**
  * hev_conf_iface:
  *
  * Get network interface name for binding as source.

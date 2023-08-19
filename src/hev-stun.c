@@ -270,6 +270,7 @@ stun_bind (int fd, int mode, unsigned int baddr[4], int bport)
 
     exec = cmp_addr (family, maddr, mport, baddr, bport);
     if (exec) {
+        hev_conf_mport (ntohs (mport));
         hev_exec_run (family, maddr, mport, baddr, bport);
     }
 

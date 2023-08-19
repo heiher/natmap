@@ -8,6 +8,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <netinet/in.h>
@@ -114,6 +115,9 @@ session_new (struct sockaddr *saddr, socklen_t len)
     mode = hev_conf_mode ();
     addr = hev_conf_taddr ();
     port = hev_conf_tport ();
+
+    if (strtoul (port, NULL, 10) == 0)
+        port = hev_conf_mport (-1);
 
     fd = hev_sock_client_pfwd (mode, addr, port);
     if (fd < 0) {

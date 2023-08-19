@@ -7,6 +7,7 @@
  ============================================================================
  */
 
+#include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/socket.h>
@@ -19,6 +20,8 @@ static int mode = SOCK_STREAM;
 static int type = AF_UNSPEC;
 static int keep;
 static int dmon;
+
+static char mport[16];
 
 static const char *stun;
 static const char *http;
@@ -52,7 +55,7 @@ hev_conf_help (void)
         "\n"
         "Forward options:\n"
         " -t <address>      domain name or address to forward target\n"
-        " -p <port>         port number to forward target\n";
+        " -p <port>         port number to forward target (0: use public port)\n";
 
     return help;
 }
@@ -189,6 +192,15 @@ const char *
 hev_conf_tport (void)
 {
     return tport;
+}
+
+const char *
+hev_conf_mport (int port)
+{
+    if (port > 0)
+        snprintf (mport, sizeof (mport) - 1, "%u", port);
+
+    return mport;
 }
 
 const char *

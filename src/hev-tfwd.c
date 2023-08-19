@@ -8,6 +8,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include <hev-task.h>
@@ -46,6 +47,9 @@ client_task_entry (void *data)
     mode = hev_conf_mode ();
     addr = hev_conf_taddr ();
     port = hev_conf_tport ();
+
+    if (strtoul (port, NULL, 10) == 0)
+        port = hev_conf_mport (-1);
 
     dfd = hev_sock_client_pfwd (mode, addr, port);
     if (dfd < 0) {
