@@ -51,7 +51,7 @@ Bind options:
 
 Forward options:
  -t <address>      domain name or address to forward target
- -p <port>         port number to forward target
+ -p <port>         port number to forward target (0: use public port)
 ```
 
 ### Bind mode
