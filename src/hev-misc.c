@@ -110,6 +110,7 @@ get_inode (int port, int family)
         }
     }
 
+    free (line);
     fclose (fp);
 
     return 0;
