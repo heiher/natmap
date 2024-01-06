@@ -35,9 +35,9 @@ hev_exec_run (int family, unsigned int maddr[4], unsigned short mport,
     const char *mode;
     const char *path;
     const char *fmt;
-    char oaddr[32];
+    char oaddr[INET6_ADDRSTRLEN];
     char oport[32];
-    char iaddr[32];
+    char iaddr[INET6_ADDRSTRLEN];
     char iport[32];
     char ip4p[32];
     pid_t pid;
