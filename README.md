@@ -155,6 +155,7 @@ ports for easy distribution through DNS AAAA records.
 * **mike wang** - https://github.com/mikewang000000
 * **muink** - https://github.com/muink
 * **tianling shen** - https://github.com/1715173329
+* **xhe** - https://github.com/xhebox
 
 ## License
 MIT
