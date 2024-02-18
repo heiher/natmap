@@ -13,7 +13,7 @@ mode, all traffic does not go through this program.
 ## How to Build
 
 ```bash
-git clone --recursive git://github.com/heiher/natmap
+git clone --recursive https://github.com/heiher/natmap.git
 cd natmap
 make
 
@@ -26,7 +26,7 @@ make CROSS_PREFIX=${cross-toolchain}/bin/x86_64-unknown-linux-
 # android
 mkdir natmap
 cd natmap
-git clone --recursive git://github.com/heiher/natmap jni
+git clone --recursive https://github.com/heiher/natmap.git jni
 ndk-build
 ```
 
