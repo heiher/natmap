@@ -88,6 +88,7 @@ tnsk_run (void)
     const char *tfwd;
     const char *addr;
     const char *port;
+    const char *hport;
     const char *iface;
     int type;
 
@@ -96,9 +97,10 @@ tnsk_run (void)
     tfwd = hev_conf_taddr ();
     addr = hev_conf_baddr ();
     port = hev_conf_bport ();
+    hport = hev_conf_hport ();
     iface = hev_conf_iface ();
 
-    fd = hev_sock_client_tcp (type, addr, port, http, "80", iface);
+    fd = hev_sock_client_tcp (type, addr, port, http, hport, iface);
     if (fd < 0) {
         LOGV (E, "%s", "Start TCP keep-alive service failed.");
         return;
