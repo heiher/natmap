@@ -148,4 +148,22 @@ const char *hev_conf_iface (void);
  */
 int hev_conf_daemon (void);
 
+/**
+ * hev_conf_sport:
+ *
+ * Get port of STUN server.
+ *
+ * Returns: returns string.
+ */
+const char *hev_conf_sport (void);
+
+/**
+ * hev_conf_hport:
+ *
+ * Get port of HTTP server.
+ *
+ * Returns: returns string.
+ */
+const char *hev_conf_hport (void);
+
 #endif /* __HEV_CONF_H__ */

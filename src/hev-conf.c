@@ -22,9 +22,11 @@ static int keep;
 static int dmon;
 
 static char mport[16];
+static char sport[16] = "3478";
+static char hport[16] = "80";
+static char stun[256];
+static char http[256];
 
-static const char *stun;
-static const char *http;
 static const char *path;
 static const char *baddr;
 static const char *bport;
@@ -83,10 +85,10 @@ hev_conf_init (int argc, char *argv[])
             keep = strtoul (optarg, NULL, 10) * 1000;
             break;
         case 's':
-            stun = optarg;
+            sscanf(optarg, "%255[^:]:%5[0123456789]", stun, sport);
             break;
         case 'h':
-            http = optarg;
+            sscanf(optarg, "%255[^:]:%5[0123456789]", http, hport);
             break;
         case 'e':
             path = optarg;
@@ -108,11 +110,11 @@ hev_conf_init (int argc, char *argv[])
         }
     }
 
-    if (!stun) {
+    if (!stun[0]) {
         return -1;
     }
 
-    if ((mode == SOCK_STREAM) && !http) {
+    if ((mode == SOCK_STREAM) && !http[0]) {
         return -1;
     }
 
@@ -213,4 +215,16 @@ int
 hev_conf_daemon (void)
 {
     return dmon;
+}
+
+const char *
+hev_conf_sport (void)
+{
+    return sport;
+}
+
+const char *
+hev_conf_hport (void)
+{
+    return hport;
 }
