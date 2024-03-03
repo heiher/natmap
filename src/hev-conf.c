@@ -85,10 +85,10 @@ hev_conf_init (int argc, char *argv[])
             keep = strtoul (optarg, NULL, 10) * 1000;
             break;
         case 's':
-            sscanf(optarg, "%255[^:]:%5[0123456789]", stun, sport);
+            sscanf (optarg, "%255[^:]:%5[0123456789]", stun, sport);
             break;
         case 'h':
-            sscanf(optarg, "%255[^:]:%5[0123456789]", http, hport);
+            sscanf (optarg, "%255[^:]:%5[0123456789]", http, hport);
             break;
         case 'e':
             path = optarg;
