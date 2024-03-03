@@ -39,22 +39,22 @@ Usage:
  natmap [options]
 
 Options:
- -4                use IPv4
- -6                use IPv6
- -u                UDP mode
- -d                run as daemon
- -i <interface>    network interface
- -k <interval>     seconds between each keep-alive
- -s <address>      domain name or address to STUN server
- -h <address>      domain name or address to HTTP server
- -e <path>         script path for notify mapped address
+ -4                  use IPv4
+ -6                  use IPv6
+ -u                  UDP mode
+ -d                  run as daemon
+ -i <interface>      network interface
+ -k <interval>       seconds between each keep-alive
+ -s <addr>[:port]    domain name or address to STUN server
+ -h <addr>[:port]    domain name or address to HTTP server
+ -e <path>           script path for notify mapped address
 
 Bind options:
- -b <port>         port number for binding
+ -b <port>           port number for binding
 
 Forward options:
- -t <address>      domain name or address to forward target
- -p <port>         port number to forward target (0: use public port)
+ -t <address>        domain name or address to forward target
+ -p <port>           port number to forward target (0: use public port)
 ```
 
 ### Bind mode
