@@ -20,6 +20,7 @@ static int mode = SOCK_STREAM;
 static int type = AF_UNSPEC;
 static int keep;
 static int dmon;
+static int tmsec;
 
 static char mport[16];
 static char sport[16] = "3478";
@@ -56,6 +57,7 @@ hev_conf_help (void)
         " -b <port>           port number for binding\n"
         "\n"
         "Forward options:\n"
+        " -T <timeout>        port forwarding timeout in seconds\n"
         " -t <address>        domain name or address to forward target\n"
         " -p <port>           port number to forward target (0: use public port)\n";
 
@@ -67,7 +69,7 @@ hev_conf_init (int argc, char *argv[])
 {
     int opt;
 
-    while ((opt = getopt (argc, argv, "46udk:s:h:e:b:t:p:i:")) != -1) {
+    while ((opt = getopt (argc, argv, "46udk:s:h:e:b:T:t:p:i:")) != -1) {
         switch (opt) {
         case '4':
             type = AF_INET;
@@ -95,6 +97,9 @@ hev_conf_init (int argc, char *argv[])
             break;
         case 'b':
             bport = optarg;
+            break;
+        case 'T':
+            tmsec = strtoul (optarg, NULL, 10) * 1000;
             break;
         case 't':
             taddr = optarg;
@@ -132,6 +137,10 @@ hev_conf_init (int argc, char *argv[])
     }
 
     baddr = (type == AF_INET6) ? "::" : "0.0.0.0";
+
+    if (tmsec <= 0) {
+        tmsec = 120000;
+    }
 
     return 0;
 }
@@ -194,6 +203,12 @@ const char *
 hev_conf_tport (void)
 {
     return tport;
+}
+
+int
+hev_conf_tmsec (void)
+{
+    return tmsec;
 }
 
 const char *

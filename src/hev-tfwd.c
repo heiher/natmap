@@ -36,9 +36,9 @@ yielder (HevTaskYieldType type, void *data)
 static void
 client_task_entry (void *data)
 {
-    int timeout = 120000;
     const char *addr;
     const char *port;
+    int timeout;
     int mode;
     int sfd;
     int dfd;
@@ -47,6 +47,7 @@ client_task_entry (void *data)
     mode = hev_conf_mode ();
     addr = hev_conf_taddr ();
     port = hev_conf_tport ();
+    timeout = hev_conf_tmsec ();
 
     if (strtoul (port, NULL, 10) == 0)
         port = hev_conf_mport (-1);
