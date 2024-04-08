@@ -151,13 +151,14 @@ static void
 client_task_entry (void *data)
 {
     const int bufsize = 2048;
-    int timeout = 120000;
     struct sockaddr *pa;
     char buf[bufsize];
     Session *s = data;
+    int timeout;
 
     pa = (struct sockaddr *)&s->addr;
     hev_task_add_fd (hev_task_self (), s->fd, POLLIN);
+    timeout = hev_conf_tmsec ();
 
     for (;;) {
         int len;

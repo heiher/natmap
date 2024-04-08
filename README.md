@@ -53,6 +53,7 @@ Bind options:
  -b <port>           port number for binding
 
 Forward options:
+ -T <timeout>        port forwarding timeout in seconds
  -t <address>        domain name or address to forward target
  -p <port>           port number to forward target (0: use public port)
 ```

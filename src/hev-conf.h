@@ -121,6 +121,15 @@ const char *hev_conf_taddr (void);
 const char *hev_conf_tport (void);
 
 /**
+ * hev_conf_tmsec:
+ *
+ * Get timeout millseconds for port forwarding.
+ *
+ * Returns: returns integer number.
+ */
+int hev_conf_tmsec (void);
+
+/**
  * hev_conf_mport:
  * @port: port number
  *
