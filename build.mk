@@ -5,7 +5,6 @@ rwildcard=$(foreach d,$(wildcard $1*), \
           $(filter $(subst *,%,$2),$d))
 
 SRCFILES=$(call rwildcard,$(SRCDIR)/,*.c *.S)
-SRCFILES=$(call rwildcard,$(SRCDIR)/,*.c *.S)
 
 ifeq ($(REV_ID),)
   ifneq (,$(wildcard .version))
