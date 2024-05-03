@@ -11,6 +11,14 @@
 #define __HEV_EXEC_H__
 
 /**
+ * hev_exec_signal_handler:
+ * @signum: signal number
+ *
+ * Handler of SIGCHLD signal.
+ */
+void hev_exec_signal_handler (int signum);
+
+/**
  * hev_exec_run:
  * @family: network family
  * @maddr: mapped addr

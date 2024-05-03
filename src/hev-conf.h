@@ -11,6 +11,21 @@
 #define __HEV_CONF_H__
 
 /**
+ * HevFwdMethod:
+ * @HEV_FWD_UNKNOWN: Unknown forward method.
+ * @HEV_FWD_DEFAULT: Default forward method.
+ * @HEV_FWD_IPTABLES: Forward using iptables.
+ *
+ * Since: 1.0
+ */
+typedef enum
+{
+    HEV_FWD_UNKNOWN,
+    HEV_FWD_DEFAULT,
+    HEV_FWD_IPTABLES
+} HevFwdMethod;
+
+/**
  * hev_conf_help:
  *
  * Get help message of config.
@@ -174,5 +189,14 @@ const char *hev_conf_sport (void);
  * Returns: returns string.
  */
 const char *hev_conf_hport (void);
+
+/**
+ * hev_conf_method:
+ *
+ * Get forward method.
+ *
+ * Returns: returns integer number.
+ */
+int hev_conf_method (void);
 
 #endif /* __HEV_CONF_H__ */

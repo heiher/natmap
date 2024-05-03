@@ -8,6 +8,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/socket.h>
@@ -17,6 +18,7 @@
 #include "hev-conf.h"
 
 static int mode = SOCK_STREAM;
+static int method = HEV_FWD_DEFAULT;
 static int type = AF_UNSPEC;
 static int keep;
 static int dmon;
@@ -35,6 +37,18 @@ static const char *taddr;
 static const char *tport;
 static const char *iface;
 
+static int
+to_method(char *m)
+{
+    if (strcmp(m, "default") == 0) {
+        return HEV_FWD_DEFAULT;
+    }
+    if (strcmp(m, "iptables") == 0) {
+        return HEV_FWD_IPTABLES;
+    }
+    return HEV_FWD_UNKNOWN;
+}
+
 const char *
 hev_conf_help (void)
 {
@@ -49,6 +63,7 @@ hev_conf_help (void)
         " -d                  run as daemon\n"
         " -i <interface>      network interface\n"
         " -k <interval>       seconds between each keep-alive\n"
+        " -m <method>         forward method\n"
         " -s <addr>[:port]    domain name or address to STUN server\n"
         " -h <addr>[:port]    domain name or address to HTTP server\n"
         " -e <path>           script path for notify mapped address\n"
@@ -69,7 +84,7 @@ hev_conf_init (int argc, char *argv[])
 {
     int opt;
 
-    while ((opt = getopt (argc, argv, "46udk:s:h:e:b:T:t:p:i:")) != -1) {
+    while ((opt = getopt (argc, argv, "46udk:m:s:h:e:b:T:t:p:i:")) != -1) {
         switch (opt) {
         case '4':
             type = AF_INET;
@@ -85,6 +100,11 @@ hev_conf_init (int argc, char *argv[])
             break;
         case 'k':
             keep = strtoul (optarg, NULL, 10) * 1000;
+            break;
+        case 'm':
+            method = to_method(optarg);
+            if (method == HEV_FWD_UNKNOWN)
+                return -1;
             break;
         case 's':
             sscanf (optarg, "%255[^:]:%5[0123456789]", stun, sport);
@@ -242,4 +262,10 @@ const char *
 hev_conf_hport (void)
 {
     return hport;
+}
+
+int
+hev_conf_method (void)
+{
+    return method;
 }

@@ -16,6 +16,7 @@
 #include <hev-task-io-socket.h>
 
 #include "hev-conf.h"
+#include "hev-ifwd.h"
 #include "hev-misc.h"
 #include "hev-sock.h"
 #include "hev-stun.h"
@@ -75,9 +76,20 @@ static void
 stun_handler (void)
 {
     const char *tfwd = hev_conf_taddr ();
+    int method = hev_conf_method ();
 
     if (tfwd) {
-        hev_tfwd_run (fd);
+        switch (method)
+        {
+        case HEV_FWD_DEFAULT:
+            hev_tfwd_run (fd);
+            break;
+        case HEV_FWD_IPTABLES:
+            hev_ifwd_run (fd);
+            break;
+        default:
+            break;
+        }
     }
 }
 
@@ -90,7 +102,7 @@ tnsk_run (void)
     const char *port;
     const char *hport;
     const char *iface;
-    int type;
+    int type, method;
 
     type = hev_conf_type ();
     http = hev_conf_http ();
@@ -99,6 +111,7 @@ tnsk_run (void)
     port = hev_conf_bport ();
     hport = hev_conf_hport ();
     iface = hev_conf_iface ();
+    method = hev_conf_method ();
 
     fd = hev_sock_client_tcp (type, addr, port, http, hport, iface);
     if (fd < 0) {
@@ -112,7 +125,17 @@ tnsk_run (void)
     http_keep_alive (fd, http);
 
     if (tfwd) {
-        hev_tfwd_kill ();
+        switch (method)
+        {
+        case HEV_FWD_DEFAULT:
+            hev_tfwd_kill ();
+            break;
+        case HEV_FWD_IPTABLES:
+            hev_ifwd_kill ();
+            break;
+        default:
+            break;
+        }
     }
     close (fd);
 }

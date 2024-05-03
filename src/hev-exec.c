@@ -20,8 +20,8 @@
 
 #include "hev-exec.h"
 
-static void
-signal_handler (int signum)
+void
+hev_exec_signal_handler (int signum)
 {
     waitpid (-1, NULL, WNOHANG);
 }
@@ -43,7 +43,7 @@ hev_exec_run (int family, unsigned int maddr[4], unsigned short mport,
     pid_t pid;
 
     path = hev_conf_path ();
-    signal (SIGCHLD, signal_handler);
+    signal (SIGCHLD, hev_exec_signal_handler);
 
     q = (unsigned char *)maddr;
     p = (unsigned char *)&mport;
