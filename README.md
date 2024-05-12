@@ -1,6 +1,5 @@
 # NATMap
 
-[![status](https://gitlab.com/hev/natmap/badges/master/pipeline.svg)](https://gitlab.com/hev/natmap/commits/master)
 [![chat](https://github.com/heiher/natmap/raw/master/.github/badges/telegram.svg)](https://t.me/hellonatter)
 
 This project is used to establish a TCP/UDP port mapping from ISP NAT public
