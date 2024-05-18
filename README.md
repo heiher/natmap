@@ -45,8 +45,8 @@ Options:
  -d                  run as daemon
  -i <interface>      network interface
  -k <interval>       seconds between each keep-alive
- -s <addr>[:port]    domain name or address to STUN server
- -h <addr>[:port]    domain name or address to HTTP server
+ -s <addr>[:port]    domain name or address of STUN server
+ -h <addr>[:port]    domain name or address of HTTP server
  -e <path>           script path for notify mapped address
 
 Bind options:
@@ -54,8 +54,8 @@ Bind options:
 
 Forward options:
  -T <timeout>        port forwarding timeout in seconds
- -t <address>        domain name or address to forward target
- -p <port>           port number to forward target (0: use public port)
+ -t <address>        domain name or address of forward target
+ -p <port>           port number of forward target (0: use public port)
 ```
 
 ### Bind mode

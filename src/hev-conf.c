@@ -49,8 +49,8 @@ hev_conf_help (void)
         " -d                  run as daemon\n"
         " -i <interface>      network interface\n"
         " -k <interval>       seconds between each keep-alive\n"
-        " -s <addr>[:port]    domain name or address to STUN server\n"
-        " -h <addr>[:port]    domain name or address to HTTP server\n"
+        " -s <addr>[:port]    domain name or address of STUN server\n"
+        " -h <addr>[:port]    domain name or address of HTTP server\n"
         " -e <path>           script path for notify mapped address\n"
         "\n"
         "Bind options:\n"
@@ -58,8 +58,8 @@ hev_conf_help (void)
         "\n"
         "Forward options:\n"
         " -T <timeout>        port forwarding timeout in seconds\n"
-        " -t <address>        domain name or address to forward target\n"
-        " -p <port>           port number to forward target (0: use public port)\n";
+        " -t <address>        domain name or address of forward target\n"
+        " -p <port>           port number of forward target (0: use public port)\n";
 
     return help;
 }
