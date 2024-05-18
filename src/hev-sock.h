@@ -18,6 +18,7 @@
  * @daddr: destination addr
  * @dport: destination port
  * @iface: network interface
+ * @mark: fwmark
  *
  * Create a socket for TCP client.
  *
@@ -25,7 +26,7 @@
  */
 int hev_sock_client_tcp (int family, const char *saddr, const char *sport,
                          const char *daddr, const char *dport,
-                         const char *iface);
+                         const char *iface, unsigned int mark);
 
 /**
  * hev_sock_client_udp:
@@ -33,13 +34,14 @@ int hev_sock_client_tcp (int family, const char *saddr, const char *sport,
  * @saddr: source addr
  * @sport: source port
  * @iface: network interface
+ * @mark: fwmark
  *
  * Create a socket for UDP client.
  *
  * Returns: returns file descriptor on successful, otherwise returns -1.
  */
 int hev_sock_client_udp (int family, const char *saddr, const char *sport,
-                         const char *iface);
+                         const char *iface, unsigned int mark);
 
 /**
  * hev_sock_client_stun:
@@ -48,6 +50,7 @@ int hev_sock_client_udp (int family, const char *saddr, const char *sport,
  * @daddr: destination addr
  * @dport: destination port
  * @iface: network interface
+ * @mark: fwmark
  * @baddr: [out] bound addr
  * @bport: [out] bound port
  *
@@ -57,7 +60,7 @@ int hev_sock_client_udp (int family, const char *saddr, const char *sport,
  */
 int hev_sock_client_stun (int fd, int type, const char *daddr,
                           const char *dport, const char *iface,
-                          unsigned int baddr[4], int *bport);
+                          unsigned int mark, unsigned int baddr[4], int *bport);
 
 /**
  * hev_sock_client_pfwd:

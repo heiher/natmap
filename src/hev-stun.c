@@ -284,6 +284,7 @@ task_entry (void *data)
     const char *iface;
     const char *stun;
     const char *sport;
+    unsigned int mark;
     int bport;
     int mode;
     int tfd;
@@ -295,8 +296,10 @@ task_entry (void *data)
     stun = hev_conf_stun ();
     sport = hev_conf_sport ();
     iface = hev_conf_iface ();
+    mark = hev_conf_mark ();
 
-    fd = hev_sock_client_stun (tfd, mode, stun, sport, iface, baddr, &bport);
+    fd = hev_sock_client_stun (tfd, mode, stun, sport, iface, mark, baddr,
+                               &bport);
     close (tfd);
     if (fd < 0) {
         LOGV (E, "%s", "Start STUN service failed.");

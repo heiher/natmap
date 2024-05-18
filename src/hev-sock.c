@@ -104,9 +104,21 @@ bind_iface (int fd, int family, const char *iface)
     return -1;
 }
 
+static int
+bind_fwmark (int fd, unsigned int mark)
+{
+#if defined(__linux__)
+    return setsockopt (fd, SOL_SOCKET, SO_MARK, &mark, sizeof (mark));
+#elif defined(__FreeBSD__)
+    return setsockopt (fd, SOL_SOCKET, SO_USER_COOKIE, &mark, sizeof (mark));
+#endif
+    return 0;
+}
+
 int
 hev_sock_client_tcp (int family, const char *saddr, const char *sport,
-                     const char *daddr, const char *dport, const char *iface)
+                     const char *daddr, const char *dport, const char *iface,
+                     unsigned int mark)
 {
     struct addrinfo *sai;
     struct addrinfo *dai;
@@ -136,6 +148,9 @@ hev_sock_client_tcp (int family, const char *saddr, const char *sport,
     }
 
     res = bind_iface (fd, sai->ai_family, iface);
+    if (mark) {
+        res |= bind_fwmark (fd, mark);
+    }
     if (res < 0) {
         LOG (E);
         freeaddrinfo (sai);
@@ -181,7 +196,7 @@ hev_sock_client_tcp (int family, const char *saddr, const char *sport,
 
 int
 hev_sock_client_udp (int family, const char *saddr, const char *sport,
-                     const char *iface)
+                     const char *iface, unsigned int mark)
 {
     struct addrinfo *sai;
     int res;
@@ -201,6 +216,9 @@ hev_sock_client_udp (int family, const char *saddr, const char *sport,
     }
 
     res = bind_iface (fd, sai->ai_family, iface);
+    if (mark) {
+        res |= bind_fwmark (fd, mark);
+    }
     if (res < 0) {
         LOG (E);
         freeaddrinfo (sai);
@@ -226,7 +244,8 @@ hev_sock_client_udp (int family, const char *saddr, const char *sport,
 
 int
 hev_sock_client_stun (int fd, int type, const char *daddr, const char *dport,
-                      const char *iface, unsigned int baddr[4], int *bport)
+                      const char *iface, unsigned int mark,
+                      unsigned int baddr[4], int *bport)
 {
     struct addrinfo sai;
     struct addrinfo *dai;
@@ -258,6 +277,9 @@ hev_sock_client_stun (int fd, int type, const char *daddr, const char *dport,
     }
 
     res = bind_iface (fd, sai.ai_family, iface);
+    if (mark) {
+        res |= bind_fwmark (fd, mark);
+    }
     if (res < 0) {
         LOG (E);
         freeaddrinfo (dai);

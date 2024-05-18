@@ -21,6 +21,7 @@ static int type = AF_UNSPEC;
 static int keep;
 static int dmon;
 static int tmsec;
+static unsigned int mark;
 
 static char mport[16];
 static char sport[16] = "3478";
@@ -52,6 +53,7 @@ hev_conf_help (void)
         " -s <addr>[:port]    domain name or address of STUN server\n"
         " -h <addr>[:port]    domain name or address of HTTP server\n"
         " -e <path>           script path for notify mapped address\n"
+        " -f <mark>           fwmark value\n"
         "\n"
         "Bind options:\n"
         " -b <port>           port number for binding\n"
@@ -69,7 +71,7 @@ hev_conf_init (int argc, char *argv[])
 {
     int opt;
 
-    while ((opt = getopt (argc, argv, "46udk:s:h:e:b:T:t:p:i:")) != -1) {
+    while ((opt = getopt (argc, argv, "46udk:s:h:e:f:b:T:t:p:i:")) != -1) {
         switch (opt) {
         case '4':
             type = AF_INET;
@@ -94,6 +96,9 @@ hev_conf_init (int argc, char *argv[])
             break;
         case 'e':
             path = optarg;
+            break;
+        case 'f':
+            mark = strtoul (optarg, NULL, 16);
             break;
         case 'b':
             bport = optarg;
@@ -179,6 +184,12 @@ const char *
 hev_conf_path (void)
 {
     return path;
+}
+
+unsigned int
+hev_conf_mark (void)
+{
+    return mark;
 }
 
 const char *

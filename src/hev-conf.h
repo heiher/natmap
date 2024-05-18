@@ -85,6 +85,15 @@ const char *hev_conf_http (void);
 const char *hev_conf_path (void);
 
 /**
+ * hev_conf_mark:
+ *
+ * Get the fwmark value.
+ *
+ * Returns: returns string.
+ */
+unsigned int hev_conf_mark (void);
+
+/**
  * hev_conf_baddr:
  *
  * Get bind address for port mapping.

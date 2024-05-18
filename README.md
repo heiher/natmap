@@ -48,6 +48,7 @@ Options:
  -s <addr>[:port]    domain name or address of STUN server
  -h <addr>[:port]    domain name or address of HTTP server
  -e <path>           script path for notify mapped address
+ -f <mark>           fwmark value
 
 Bind options:
  -b <port>           port number for binding

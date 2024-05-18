@@ -57,6 +57,7 @@ unsk_run (void)
     const char *addr;
     const char *port;
     const char *iface;
+    unsigned int mark;
     int type;
 
     type = hev_conf_type ();
@@ -64,9 +65,10 @@ unsk_run (void)
     addr = hev_conf_baddr ();
     port = hev_conf_bport ();
     iface = hev_conf_iface ();
+    mark = hev_conf_mark ();
     timeout = hev_conf_keep ();
 
-    fd = hev_sock_client_udp (type, addr, port, iface);
+    fd = hev_sock_client_udp (type, addr, port, iface, mark);
     if (fd < 0) {
         LOGV (E, "%s", "Start UDP keep-alive service failed.");
         return;
