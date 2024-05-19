@@ -53,7 +53,7 @@ hev_conf_help (void)
         " -s <addr>[:port]    domain name or address of STUN server\n"
         " -h <addr>[:port]    domain name or address of HTTP server\n"
         " -e <path>           script path for notify mapped address\n"
-        " -f <mark>           fwmark value\n"
+        " -f <mark>           fwmark value (hex: 0x1, dec: 1, oct: 01)\n"
         "\n"
         "Bind options:\n"
         " -b <port>           port number for binding\n"
@@ -98,7 +98,7 @@ hev_conf_init (int argc, char *argv[])
             path = optarg;
             break;
         case 'f':
-            mark = strtoul (optarg, NULL, 16);
+            mark = strtoul (optarg, NULL, 0);
             break;
         case 'b':
             bport = optarg;
