@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
 #include <sys/socket.h>
 
 #include "hev-misc.h"
@@ -17,7 +19,7 @@
 #include "hev-conf.h"
 
 static int mode = SOCK_STREAM;
-static int type = AF_UNSPEC;
+static int type = AF_INET;
 static int keep;
 static int dmon;
 static int tmsec;
@@ -48,7 +50,7 @@ hev_conf_help (void)
         " -6                  use IPv6\n"
         " -u                  UDP mode\n"
         " -d                  run as daemon\n"
-        " -i <interface>      network interface\n"
+        " -i <interface>      network interface or IP address\n"
         " -k <interval>       seconds between each keep-alive\n"
         " -s <addr>[:port]    domain name or address of STUN server\n"
         " -h <addr>[:port]    domain name or address of HTTP server\n"
@@ -70,6 +72,7 @@ int
 hev_conf_init (int argc, char *argv[])
 {
     int opt;
+    struct sockaddr_in6 sa;
 
     while ((opt = getopt (argc, argv, "46udk:s:h:e:f:b:T:t:p:i:")) != -1) {
         switch (opt) {
@@ -141,7 +144,12 @@ hev_conf_init (int argc, char *argv[])
         bport = "0";
     }
 
-    baddr = (type == AF_INET6) ? "::" : "0.0.0.0";
+    if (iface && inet_pton (type, iface, &sa)) {
+        baddr = iface;
+        iface = NULL;
+    } else {
+        baddr = (type == AF_INET6) ? "::" : "0.0.0.0";
+    }
 
     if (tmsec <= 0) {
         tmsec = 120000;

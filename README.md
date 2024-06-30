@@ -43,7 +43,7 @@ Options:
  -6                  use IPv6
  -u                  UDP mode
  -d                  run as daemon
- -i <interface>      network interface
+ -i <interface>      network interface or IP address
  -k <interval>       seconds between each keep-alive
  -s <addr>[:port]    domain name or address of STUN server
  -h <addr>[:port]    domain name or address of HTTP server
