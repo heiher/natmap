@@ -3,7 +3,7 @@
 [![status](https://github.com/heiher/natmap/actions/workflows/build.yaml/badge.svg?branch=master&event=push)](https://github.com/heiher/natmap)
 [![chat](https://github.com/heiher/natmap/raw/master/.github/badges/telegram.svg)](https://t.me/hellonatter)
 
-This project is used to establish a TCP/UDP port mapping from ISP NAT public
+This project is used to establish a TCP/UDP port mapping from an ISP NAT public
 address to local private address. If all layers of NAT are full cones (NAT-1),
 any host can access internal services through the mapped public address. In bind
 mode, all traffic does not go through this program.
@@ -72,13 +72,13 @@ natmap -u -s turn.cloudflare.com -b 443
 In TCP mode, this program will establishs a TCP port mapping in two steps:
 
 1. Establish a connection with the HTTP server from the specified bind port and
-keep-alive.
+keep it alive.
 2. Establish a connection with the STUN server from the same port and obtain the
 public address.
 
-And this program will call the script specified by the argument to inform the
-public address after the port mapping is established. and the script can update
-to the DNS record for external access.
+This program will then call the script specified by the argument to inform the
+public address after the port mapping is established. The script can update
+the DNS record for external access.
 
 Please note that you need to open the firewall to allow access to the bind port.
 
@@ -95,8 +95,8 @@ Add a traffic rule:
 * Action: accept
 * Others: keep default values
 
-If the port binding fails, because it is already in use. This program will try
-to find out which local service process takes up the port and enable reuse port
+If the port binding fails because it is already in use, this program will try
+to find out which local service process occupies the port and enable port reuse
 remotely. This works in Linux kernel 5.6 and later, and needs to run as root.
 
 ### Forward mode
@@ -109,8 +109,8 @@ natmap -s turn.cloudflare.com -h example.com -b 80 -t 10.0.0.2 -p 80
 natmap -u -s turn.cloudflare.com -b 443 -t 10.0.0.2 -p 443
 ```
 
-Similar to bind mode, this program will listening on bound port and accepts the
-incoming connections and forward to target address.
+Similar to bind mode, this program will listen on bound port, accepts incoming
+connections, and forward them to target address.
 
 Another way is to use firewall's DNAT to forward, and this way should uses bind
 mode.
