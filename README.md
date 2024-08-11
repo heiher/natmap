@@ -51,7 +51,10 @@ Options:
  -f <mark>           fwmark value (hex: 0x1, dec: 1, oct: 01)
 
 Bind options:
- -b <port>           port number for binding
+ -b <port>[-port]    port number range for binding
+                     - <0>: random allocation
+                     - <port>: specified
+                     - <port>-<port>: sequential allocation within the range
 
 Forward options:
  -T <timeout>        port forwarding timeout in seconds

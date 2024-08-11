@@ -23,6 +23,7 @@ static int type = AF_INET;
 static int keep;
 static int dmon;
 static int tmsec;
+static int bport[3];
 static unsigned int mark;
 
 static char mport[16];
@@ -33,7 +34,6 @@ static char http[256];
 
 static const char *path;
 static const char *baddr;
-static const char *bport;
 static const char *taddr;
 static const char *tport;
 static const char *iface;
@@ -58,7 +58,10 @@ hev_conf_help (void)
         " -f <mark>           fwmark value (hex: 0x1, dec: 1, oct: 01)\n"
         "\n"
         "Bind options:\n"
-        " -b <port>           port number for binding\n"
+        " -b <port>[-port]    port number range for binding\n"
+        "                     - <0>: random allocation\n"
+        "                     - <port>: specified\n"
+        "                     - <port>-<port>: sequential allocation within the range\n"
         "\n"
         "Forward options:\n"
         " -T <timeout>        port forwarding timeout in seconds\n"
@@ -104,7 +107,7 @@ hev_conf_init (int argc, char *argv[])
             mark = strtoul (optarg, NULL, 0);
             break;
         case 'b':
-            bport = optarg;
+            sscanf (optarg, "%u-%u", &bport[0], &bport[1]);
             break;
         case 'T':
             tmsec = strtoul (optarg, NULL, 10) * 1000;
@@ -140,9 +143,13 @@ hev_conf_init (int argc, char *argv[])
         keep *= 1000;
     }
 
-    if (!bport) {
-        bport = "0";
+    if (!bport[0]) {
+        bport[0] = 0;
     }
+    if (!bport[1]) {
+        bport[1] = bport[0];
+    }
+    bport[2] = bport[0];
 
     if (iface && inet_pton (type, iface, &sa)) {
         baddr = iface;
@@ -209,7 +216,16 @@ hev_conf_baddr (void)
 const char *
 hev_conf_bport (void)
 {
-    return bport;
+    static char port[16];
+
+    snprintf (port, sizeof (port) - 1, "%u", bport[2]);
+
+    bport[2] = bport[2] + 1;
+    if (bport[2] > bport[1]) {
+        bport[2] = bport[0];
+    }
+
+    return port;
 }
 
 const char *
