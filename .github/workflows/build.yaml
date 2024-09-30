@@ -132,3 +132,21 @@ jobs:
       - name: Build
         run: |
           make
+  android:
+    name: Android
+    runs-on: ubuntu-22.04
+    if: github.event_name != 'release'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: true
+      - name: Prepare
+        run: |
+          wget https://dl.google.com/android/repository/android-ndk-r27b-linux.zip
+          unzip android-ndk-r27b-linux.zip
+          ln -sf . jni
+      - name: Build
+        run: |
+          ./android-ndk-r27b/ndk-build
