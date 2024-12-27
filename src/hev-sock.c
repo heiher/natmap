@@ -362,7 +362,7 @@ hev_sock_client_pfwd (int type, const char *addr, const char *port)
 }
 
 int
-hev_sock_server_pfwd (int fd, int type)
+hev_sock_server_pfwd (int fd, int type, const char *iface, unsigned int mark)
 {
     struct addrinfo ai;
     struct sockaddr_storage addr;
@@ -385,6 +385,10 @@ hev_sock_server_pfwd (int fd, int type)
     }
 
     res |= bind (fd, (struct sockaddr *)&addr, addrlen);
+    res |= bind_iface (fd, addr.ss_family, iface);
+    if (mark) {
+        res |= bind_fwmark (fd, mark);
+    }
     if (type == SOCK_STREAM) {
         res |= listen (fd, 5);
     }

@@ -70,10 +70,14 @@ static void
 server_task_entry (void *data)
 {
     int fd = (intptr_t)data;
+    const char *iface;
     int mode;
+    int mark;
 
     mode = hev_conf_mode ();
-    fd = hev_sock_server_pfwd (fd, mode);
+    mark = hev_conf_mark ();
+    iface = hev_conf_iface ();
+    fd = hev_sock_server_pfwd (fd, mode, iface, mark);
     if (fd < 0) {
         LOGV (E, "%s", "Start TCP forward service failed.");
         hev_xnsk_kill ();

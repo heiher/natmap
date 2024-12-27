@@ -186,13 +186,17 @@ client_task_entry (void *data)
 static void
 server_task_entry (void *data)
 {
+    const char *iface;
     int mode;
+    int mark;
     int tfd;
 
     tfd = (intptr_t)data;
     mode = hev_conf_mode ();
+    mark = hev_conf_mark ();
+    iface = hev_conf_iface ();
 
-    sfd = hev_sock_server_pfwd (tfd, mode);
+    sfd = hev_sock_server_pfwd (tfd, mode, iface, mark);
     close (tfd);
     if (sfd < 0) {
         LOGV (E, "%s", "Start UDP forward service failed.");

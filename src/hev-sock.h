@@ -78,11 +78,14 @@ int hev_sock_client_pfwd (int type, const char *addr, const char *port);
  * hev_sock_server_pfwd:
  * @fd: http socket file descriptor
  * @type: socket type
+ * @iface: network interface
+ * @mark: fwmark
  *
  * Create a socket for port forwarding server.
  *
  * Returns: returns file descriptor on successful, otherwise returns -1.
  */
-int hev_sock_server_pfwd (int fd, int type);
+int hev_sock_server_pfwd (int fd, int type, const char *iface,
+                          unsigned int mark);
 
 #endif /* __HEV_SOCK_H__ */
