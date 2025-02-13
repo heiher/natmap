@@ -36,6 +36,7 @@ yielder (HevTaskYieldType type, void *data)
 static void
 client_task_entry (void *data)
 {
+    HevTask *task = hev_task_self ();
     const char *addr;
     const char *port;
     int timeout;
@@ -59,9 +60,11 @@ client_task_entry (void *data)
         return;
     }
 
-    hev_task_add_fd (hev_task_self (), sfd, POLLIN | POLLOUT);
+    hev_task_add_fd (task, sfd, POLLIN | POLLOUT);
     hev_task_io_splice (sfd, sfd, dfd, dfd, 8192, io_yielder, &timeout);
 
+    hev_task_del_fd (task, sfd);
+    hev_task_del_fd (task, dfd);
     close (sfd);
     close (dfd);
 }

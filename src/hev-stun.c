@@ -326,6 +326,7 @@ task_entry (void *data)
         }
     }
 
+    hev_task_del_fd (hev_task_self (), fd);
     close (fd);
     task = NULL;
 }

@@ -128,6 +128,7 @@ session_new (struct sockaddr *saddr, socklen_t len)
     s = hev_malloc0 (sizeof (Session));
     if (!s) {
         LOG (E);
+        hev_task_del_fd (hev_task_self (), fd);
         close (fd);
         return NULL;
     }
@@ -150,6 +151,7 @@ session_free (Session *s)
 static void
 client_task_entry (void *data)
 {
+    HevTask *task = hev_task_self ();
     const int bufsize = 2048;
     struct sockaddr *pa;
     char buf[bufsize];
@@ -157,7 +159,7 @@ client_task_entry (void *data)
     int timeout;
 
     pa = (struct sockaddr *)&s->addr;
-    hev_task_add_fd (hev_task_self (), s->fd, POLLIN);
+    hev_task_add_fd (task, s->fd, POLLIN);
     timeout = hev_conf_tmsec ();
 
     for (;;) {
@@ -179,6 +181,7 @@ client_task_entry (void *data)
         }
     }
 
+    hev_task_del_fd (task, s->fd);
     session_del (s);
     session_free (s);
 }
@@ -238,6 +241,7 @@ server_task_entry (void *data)
         s->active = 1;
     }
 
+    hev_task_del_fd (hev_task_self (), sfd);
     close (sfd);
     task = NULL;
     sfd = -1;

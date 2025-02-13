@@ -120,6 +120,7 @@ hev_sock_client_tcp (int family, const char *saddr, const char *sport,
                      const char *daddr, const char *dport, const char *iface,
                      unsigned int mark)
 {
+    HevTask *task = hev_task_self ();
     struct addrinfo *sai;
     struct addrinfo *dai;
     int timeout = 30000;
@@ -173,7 +174,7 @@ hev_sock_client_tcp (int family, const char *saddr, const char *sport,
     }
     freeaddrinfo (sai);
 
-    hev_task_add_fd (hev_task_self (), fd, POLLIN | POLLOUT);
+    hev_task_add_fd (task, fd, POLLIN | POLLOUT);
 
     res = hev_task_io_socket_connect (fd, dai->ai_addr, dai->ai_addrlen,
                                       io_yielder, &timeout);
@@ -187,6 +188,7 @@ hev_sock_client_tcp (int family, const char *saddr, const char *sport,
         } else {
             LOGV (E, "%s", strerror (errno));
         }
+        hev_task_del_fd (task, fd);
         close (fd);
         return -1;
     }
@@ -247,6 +249,7 @@ hev_sock_client_stun (int fd, int type, const char *daddr, const char *dport,
                       const char *iface, unsigned int mark,
                       unsigned int baddr[4], int *bport)
 {
+    HevTask *task = hev_task_self ();
     struct addrinfo sai;
     struct addrinfo *dai;
     struct sockaddr_storage saddr;
@@ -295,13 +298,14 @@ hev_sock_client_stun (int fd, int type, const char *daddr, const char *dport,
         return -1;
     }
 
-    hev_task_add_fd (hev_task_self (), fd, POLLIN | POLLOUT);
+    hev_task_add_fd (task, fd, POLLIN | POLLOUT);
 
     res = hev_task_io_socket_connect (fd, dai->ai_addr, dai->ai_addrlen,
                                       io_yielder, &timeout);
     freeaddrinfo (dai);
     if (res < 0) {
         LOG (E);
+        hev_task_del_fd (task, fd);
         close (fd);
         return -1;
     }
@@ -309,6 +313,7 @@ hev_sock_client_stun (int fd, int type, const char *daddr, const char *dport,
     res = getsockname (fd, (struct sockaddr *)&saddr, &saddrlen);
     if (res < 0) {
         LOG (E);
+        hev_task_del_fd (task, fd);
         close (fd);
         return -1;
     }
@@ -329,6 +334,7 @@ hev_sock_client_stun (int fd, int type, const char *daddr, const char *dport,
 int
 hev_sock_client_pfwd (int type, const char *addr, const char *port)
 {
+    HevTask *task = hev_task_self ();
     struct addrinfo *ai;
     int timeout = 30000;
     int res;
@@ -347,13 +353,14 @@ hev_sock_client_pfwd (int type, const char *addr, const char *port)
         return -1;
     }
 
-    hev_task_add_fd (hev_task_self (), fd, POLLIN | POLLOUT);
+    hev_task_add_fd (task, fd, POLLIN | POLLOUT);
 
     res = hev_task_io_socket_connect (fd, ai->ai_addr, ai->ai_addrlen,
                                       io_yielder, &timeout);
     freeaddrinfo (ai);
     if (res < 0) {
         LOG (E);
+        hev_task_del_fd (task, fd);
         close (fd);
         return -1;
     }
