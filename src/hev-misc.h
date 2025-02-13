@@ -13,6 +13,10 @@
 #include <hev-task.h>
 #include <hev-task-io.h>
 
+#ifndef SO_REUSEPORT
+#define SO_REUSEPORT SO_REUSEADDR
+#endif
+
 #define ARRAY_SIZE(x) (sizeof (x) / sizeof (x[0]))
 
 #define LOG(T) \

@@ -14,7 +14,10 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+
+#if defined(__linux__)
 #include <sys/syscall.h>
+#endif
 
 #include "hev-misc.h"
 
