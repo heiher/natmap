@@ -10,7 +10,7 @@ CCFLAGS=-O3 -pipe -Wall -Werror $(CFLAGS) \
 		-I$(THIRDPARTDIR)/hev-task-system/include \
 		-I$(THIRDPARTDIR)/hev-task-system/src/lib/rbtree
 LDFLAGS=-L$(THIRDPARTDIR)/hev-task-system/bin -lhev-task-system \
-		-lpthread
+		-lpthread $(LFLAGS)
 
 SRCDIR=src
 BINDIR=bin
