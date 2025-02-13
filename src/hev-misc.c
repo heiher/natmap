@@ -2,7 +2,7 @@
  ============================================================================
  Name        : hev-misc.c
  Author      : hev <r@hev.cc>
- Copyright   : Copyright (c) 2022 xyz
+ Copyright   : Copyright (c) 2022 - 2025 xyz
  Description : Misc
  ============================================================================
  */
@@ -14,7 +14,10 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+
+#if defined(__linux__)
 #include <sys/syscall.h>
+#endif
 
 #include "hev-misc.h"
 

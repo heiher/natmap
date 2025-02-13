@@ -2,7 +2,7 @@
  ============================================================================
  Name        : hev-misc.h
  Author      : hev <r@hev.cc>
- Copyright   : Copyright (c) 2022 xyz
+ Copyright   : Copyright (c) 2022 - 2025 xyz
  Description : Misc
  ============================================================================
  */
@@ -12,6 +12,10 @@
 
 #include <hev-task.h>
 #include <hev-task-io.h>
+
+#ifndef SO_REUSEPORT
+#define SO_REUSEPORT SO_REUSEADDR
+#endif
 
 #define ARRAY_SIZE(x) (sizeof (x) / sizeof (x[0]))
 
