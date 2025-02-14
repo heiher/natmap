@@ -72,7 +72,13 @@ http_keep_alive (int fd, const char *http)
 }
 
 static void
-stun_handler (void)
+stun_ready_handler (void)
+{
+    return;
+}
+
+static void
+stun_done_handler (void)
 {
     const char *tfwd = hev_conf_taddr ();
 
@@ -80,6 +86,9 @@ stun_handler (void)
         hev_tfwd_run (fd);
     }
 }
+
+static HevStunHandlerGroup handlers = { &stun_ready_handler,
+                                        &stun_done_handler };
 
 static void
 tnsk_run (void)
@@ -108,7 +117,7 @@ tnsk_run (void)
         return;
     }
 
-    hev_stun_run (fd, stun_handler);
+    hev_stun_run (fd, &handlers);
 
     timeout = 1;
     http_keep_alive (fd, http);
