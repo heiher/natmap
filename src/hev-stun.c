@@ -70,7 +70,7 @@ struct _StunMappedAddr
 };
 
 static HevTask *task;
-static HevStunHandler handler;
+static HevStunHandlerGroup *handlers;
 
 static int
 cmp_addr (int family, unsigned int maddr[4], unsigned short mport,
@@ -266,7 +266,7 @@ stun_bind (int fd, int mode, unsigned int baddr[4], int bport)
         return -1;
     }
 
-    handler ();
+    handlers->done ();
 
     exec = cmp_addr (family, maddr, mport, baddr, bport);
     if (exec) {
@@ -308,6 +308,8 @@ task_entry (void *data)
         return;
     }
 
+    handlers->ready ();
+
     if (mode == SOCK_STREAM) {
         res = stun_bind (fd, mode, baddr, bport);
         if (res < 0) {
@@ -332,14 +334,14 @@ task_entry (void *data)
 }
 
 void
-hev_stun_run (int fd, HevStunHandler _handler)
+hev_stun_run (int fd, HevStunHandlerGroup *_handlers)
 {
     if (task) {
         hev_task_wakeup (task);
         return;
     }
 
-    handler = _handler;
+    handlers = _handlers;
     task = hev_task_new (-1);
     fd = hev_task_io_dup (fd);
     hev_task_run (task, task_entry, (void *)(intptr_t)fd);

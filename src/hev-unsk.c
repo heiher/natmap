@@ -39,16 +39,23 @@ unsk_close (void)
 }
 
 static void
-stun_handler (void)
+stun_ready_handler (void)
+{
+    unsk_close ();
+}
+
+static void
+stun_done_handler (void)
 {
     const char *ufwd = hev_conf_taddr ();
 
     if (ufwd) {
         hev_ufwd_run (fd);
     }
-
-    unsk_close ();
 }
+
+static HevStunHandlerGroup handlers = { &stun_ready_handler,
+                                        &stun_done_handler };
 
 static void
 unsk_run (void)
@@ -74,13 +81,13 @@ unsk_run (void)
         return;
     }
 
-    hev_stun_run (fd, stun_handler);
+    hev_stun_run (fd, &handlers);
 
     do {
         if (hev_task_sleep (timeout) > 0) {
             break;
         }
-        hev_stun_run (-1, NULL);
+        hev_stun_run (-1, &handlers);
     } while (timeout);
 
     if (ufwd) {
