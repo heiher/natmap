@@ -14,6 +14,8 @@ jobs:
   source:
     name: Source
     runs-on: ubuntu-22.04
+    env:
+      BRANCH_NAME: ${{ github.base_ref || github.ref_name }} 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,15 +28,15 @@ jobs:
           if [ -z "${REV_ID}" ]; then
             REV_ID=$(git rev-parse --short HEAD)
           fi
-          mkdir -p natmap-${{ github.ref_name }}
-          git ls-files --recurse-submodules | tar c -O -T- | tar x -C natmap-${{ github.ref_name }}
-          echo ${REV_ID} > natmap-${{ github.ref_name }}/.version
-          tar cJf natmap-${{ github.ref_name }}.tar.xz natmap-${{ github.ref_name }}
+          mkdir -p natmap-${{ env.BRANCH_NAME }}
+          git ls-files --recurse-submodules | tar c -O -T- | tar x -C natmap-${{ env.BRANCH_NAME }}
+          echo ${REV_ID} > natmap-${{ env.BRANCH_NAME }}/.version
+          tar cJf natmap-${{ env.BRANCH_NAME }}.tar.xz natmap-${{ env.BRANCH_NAME }}
       - name: Upload source
         uses: actions/upload-artifact@v4
         with:
-          name: natmap-${{ github.ref_name }}.tar.xz
-          path: natmap-${{ github.ref_name }}.tar.xz
+          name: natmap-${{ env.BRANCH_NAME }}.tar.xz
+          path: natmap-${{ env.BRANCH_NAME }}.tar.xz
           if-no-files-found: error
           retention-days: 1
 
