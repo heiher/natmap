@@ -33,8 +33,7 @@ ndk-build
 export MSYS=winsymlinks:native
 git clone --recursive https://github.com/heiher/natmap.git jni
 cd natmap
-# depends on mingw-w64-clang-x86_64-libkqueue
-make CFLAGS="-I/clang64/include/kqueue" LFLAGS="-L/clang64/lib -lkqueue"
+make LFLAGS="-lmsys-2.0 -lws2_32"
 ```
 
 ## How to Use
