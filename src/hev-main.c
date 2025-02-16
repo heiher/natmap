@@ -18,6 +18,7 @@
 
 #include "hev-conf.h"
 #include "hev-misc.h"
+#include "hev-winc.h"
 #include "hev-xnsk.h"
 
 #include "hev-main.h"
@@ -31,6 +32,14 @@ main (int argc, char *argv[])
     };
     struct timeval tv;
     int res;
+
+#if defined(__MSYS__)
+    res = hev_winc_setup_ctrlc ();
+    if (res < 0) {
+        LOG (E);
+        return -3;
+    }
+#endif
 
     res = hev_conf_init (argc, argv);
     if (res < 0) {
