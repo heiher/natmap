@@ -31,7 +31,7 @@ ndk-build
 
 # windows (msys2)
 export MSYS=winsymlinks:native
-git clone --recursive https://github.com/heiher/natmap.git jni
+git clone --recursive https://github.com/heiher/natmap.git
 cd natmap
 make LFLAGS="-lmsys-2.0 -lws2_32"
 ```
