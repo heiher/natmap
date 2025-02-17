@@ -2,7 +2,7 @@
  ============================================================================
  Name        : hev-exec.c
  Author      : hev <r@hev.cc>
- Copyright   : Copyright (c) 2022 xyz
+ Copyright   : Copyright (c) 2022 - 2025 xyz
  Description : Exec
  ============================================================================
  */
@@ -15,15 +15,31 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
+#include <hev-task-call.h>
+
 #include "hev-conf.h"
 #include "hev-misc.h"
 
 #include "hev-exec.h"
 
+static HevTaskCall call;
+
 static void
 signal_handler (int signum)
 {
     waitpid (-1, NULL, WNOHANG);
+}
+
+static void
+hev_exec_fork (HevTaskCall *call)
+{
+    hev_task_call_set_retval (call, (void *)(intptr_t)fork ());
+}
+
+void
+hev_exec_init (void *stack)
+{
+    call.stack_top = stack;
 }
 
 void
@@ -40,7 +56,7 @@ hev_exec_run (int family, unsigned int maddr[4], unsigned short mport,
     char iaddr[INET6_ADDRSTRLEN];
     char iport[32];
     char ip4p[32];
-    pid_t pid;
+    int res;
 
     path = hev_conf_path ();
     signal (SIGCHLD, signal_handler);
@@ -79,11 +95,17 @@ hev_exec_run (int family, unsigned int maddr[4], unsigned short mport,
         return;
     }
 
-    pid = fork ();
-    if (pid < 0) {
+#ifdef __MSYS__
+    hev_task_call_jump (&call, hev_exec_fork);
+#else
+    hev_exec_fork (&call);
+#endif
+
+    res = (intptr_t)call.retval;
+    if (res < 0) {
         LOG (E);
         return;
-    } else if (pid != 0) {
+    } else if (res != 0) {
         return;
     }
 
