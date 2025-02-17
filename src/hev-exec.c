@@ -23,6 +23,13 @@
 #include "hev-exec.h"
 
 static HevTaskCall call;
+static const char *mode;
+static const char *path;
+static char oaddr[INET6_ADDRSTRLEN];
+static char iaddr[INET6_ADDRSTRLEN];
+static char oport[32];
+static char iport[32];
+static char ip4p[32];
 
 static void
 signal_handler (int signum)
@@ -31,9 +38,22 @@ signal_handler (int signum)
 }
 
 static void
-hev_exec_fork (HevTaskCall *call)
+hev_exec_fork_exec (HevTaskCall *call)
 {
-    hev_task_call_set_retval (call, (void *)(intptr_t)fork ());
+    pid_t pid;
+
+    pid = fork ();
+    if (pid < 0) {
+        LOG (E);
+        return;
+    } else if (pid != 0) {
+        return;
+    }
+
+    execl (path, path, oaddr, oport, ip4p, iport, mode, iaddr, NULL);
+
+    LOGV (E, "%s", "Run script failed, Please check is it executable?");
+    exit (-1);
 }
 
 void
@@ -48,15 +68,7 @@ hev_exec_run (int family, unsigned int maddr[4], unsigned short mport,
 {
     unsigned char *q;
     unsigned char *p;
-    const char *mode;
-    const char *path;
     const char *fmt;
-    char oaddr[INET6_ADDRSTRLEN];
-    char oport[32];
-    char iaddr[INET6_ADDRSTRLEN];
-    char iport[32];
-    char ip4p[32];
-    int res;
 
     path = hev_conf_path ();
     signal (SIGCHLD, signal_handler);
@@ -96,21 +108,8 @@ hev_exec_run (int family, unsigned int maddr[4], unsigned short mport,
     }
 
 #ifdef __MSYS__
-    hev_task_call_jump (&call, hev_exec_fork);
+    hev_task_call_jump (&call, hev_exec_fork_exec);
 #else
-    hev_exec_fork (&call);
+    hev_exec_fork_exec (&call);
 #endif
-
-    res = (intptr_t)call.retval;
-    if (res < 0) {
-        LOG (E);
-        return;
-    } else if (res != 0) {
-        return;
-    }
-
-    execl (path, path, oaddr, oport, ip4p, iport, mode, iaddr, NULL);
-
-    LOGV (E, "%s", "Run script failed, Please check is it executable?");
-    exit (-1);
 }
