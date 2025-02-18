@@ -2,7 +2,7 @@
  ============================================================================
  Name        : hev-tfwd.c
  Author      : hev <r@hev.cc>
- Copyright   : Copyright (c) 2022 xyz
+ Copyright   : Copyright (c) 2022 - 2025 xyz
  Description : TCP forwarder
  ============================================================================
  */
@@ -72,15 +72,15 @@ client_task_entry (void *data)
 static void
 server_task_entry (void *data)
 {
-    int fd = (intptr_t)data;
     const char *iface;
     int mode;
     int mark;
+    int fd;
 
     mode = hev_conf_mode ();
     mark = hev_conf_mark ();
     iface = hev_conf_iface ();
-    fd = hev_sock_server_pfwd (fd, mode, iface, mark);
+    fd = hev_sock_server_pfwd (data, mode, iface, mark);
     if (fd < 0) {
         LOGV (E, "%s", "Start TCP forward service failed.");
         hev_xnsk_kill ();
@@ -110,14 +110,14 @@ server_task_entry (void *data)
 }
 
 void
-hev_tfwd_run (int fd)
+hev_tfwd_run (struct sockaddr *saddr)
 {
     if (task) {
         return;
     }
 
     task = hev_task_new (-1);
-    hev_task_run (task, server_task_entry, (void *)(intptr_t)fd);
+    hev_task_run (task, server_task_entry, saddr);
 }
 
 void

@@ -2,7 +2,7 @@
  ============================================================================
  Name        : hev-ufwd.c
  Author      : hev <r@hev.cc>
- Copyright   : Copyright (c) 2022 xyz
+ Copyright   : Copyright (c) 2022 - 2025 xyz
  Description : UDP forwarder
  ============================================================================
  */
@@ -40,8 +40,8 @@ struct _Session
 
 static HevRBTree sessions;
 static HevTask *task;
+static int sfd = -1;
 static int quit;
-static int sfd;
 
 static int
 yielder (HevTaskYieldType type, void *data)
@@ -192,15 +192,12 @@ server_task_entry (void *data)
     const char *iface;
     int mode;
     int mark;
-    int tfd;
 
-    tfd = (intptr_t)data;
     mode = hev_conf_mode ();
     mark = hev_conf_mark ();
     iface = hev_conf_iface ();
 
-    sfd = hev_sock_server_pfwd (tfd, mode, iface, mark);
-    close (tfd);
+    sfd = hev_sock_server_pfwd (data, mode, iface, mark);
     if (sfd < 0) {
         LOGV (E, "%s", "Start UDP forward service failed.");
         hev_xnsk_kill ();
@@ -248,15 +245,14 @@ server_task_entry (void *data)
 }
 
 void
-hev_ufwd_run (int fd)
+hev_ufwd_run (struct sockaddr *saddr)
 {
     if (task) {
         return;
     }
 
     task = hev_task_new (-1);
-    fd = hev_task_io_dup (fd);
-    hev_task_run (task, server_task_entry, (void *)(intptr_t)fd);
+    hev_task_run (task, server_task_entry, saddr);
 }
 
 void
@@ -266,4 +262,10 @@ hev_ufwd_kill (void)
     if (task) {
         hev_task_wakeup (task);
     }
+}
+
+int
+hev_ufwd_fd (void)
+{
+    return sfd;
 }
