@@ -2,7 +2,7 @@
  ============================================================================
  Name        : hev-sock.c
  Author      : hev <r@hev.cc>
- Copyright   : Copyright (c) 2022 xyz
+ Copyright   : Copyright (c) 2022 - 2025 xyz
  Description : Sock
  ============================================================================
  */
@@ -116,28 +116,35 @@ bind_fwmark (int fd, unsigned int mark)
 }
 
 int
-hev_sock_client_tcp (int family, const char *saddr, const char *sport,
-                     const char *daddr, const char *dport, const char *iface,
-                     unsigned int mark)
+hev_sock_client_base (int family, int type, const char *saddr,
+                      const char *sport, const char *daddr, const char *dport,
+                      const char *iface, unsigned int mark,
+                      struct sockaddr_storage *baddr,
+                      struct sockaddr_storage *paddr)
 {
     HevTask *task = hev_task_self ();
     struct addrinfo *sai;
     struct addrinfo *dai;
     int timeout = 30000;
+    socklen_t addrlen;
     int res;
     int fd;
 
-    sai = get_addr (family, SOCK_STREAM, saddr, sport, 0);
+    sai = get_addr (family, type, saddr, sport, 0);
     if (!sai) {
         LOG (E);
         return -1;
     }
 
-    dai = get_addr (sai->ai_family, SOCK_STREAM, daddr, dport, 0);
+    dai = get_addr (sai->ai_family, type, daddr, dport, 0);
     if (!dai) {
         LOG (E);
         freeaddrinfo (sai);
         return -1;
+    }
+
+    if (paddr) {
+        memcpy (paddr, dai->ai_addr, dai->ai_addrlen);
     }
 
     fd = get_sock (sai);
@@ -193,77 +200,41 @@ hev_sock_client_tcp (int family, const char *saddr, const char *sport,
         return -1;
     }
 
-    return fd;
-}
-
-int
-hev_sock_client_udp (int family, const char *saddr, const char *sport,
-                     const char *iface, unsigned int mark)
-{
-    struct addrinfo *sai;
-    int res;
-    int fd;
-
-    sai = get_addr (family, SOCK_DGRAM, saddr, sport, 0);
-    if (!sai) {
-        LOG (E);
-        return -1;
-    }
-
-    fd = get_sock (sai);
-    if (fd < 0) {
-        LOG (E);
-        freeaddrinfo (sai);
-        return -1;
-    }
-
-    res = bind_iface (fd, sai->ai_family, iface);
-    if (mark) {
-        res |= bind_fwmark (fd, mark);
-    }
+    addrlen = sizeof (struct sockaddr_storage);
+    res = getsockname (fd, (struct sockaddr *)baddr, &addrlen);
     if (res < 0) {
         LOG (E);
-        freeaddrinfo (sai);
+        hev_task_del_fd (task, fd);
         close (fd);
         return -1;
     }
 
-    res = bind (fd, sai->ai_addr, sai->ai_addrlen);
-    if (res < 0) {
-        hev_reuse_port (sport);
-        res = bind (fd, sai->ai_addr, sai->ai_addrlen);
-        if (res < 0) {
-            LOGV (E, "%s", strerror (errno));
-            freeaddrinfo (sai);
-            close (fd);
-            return -1;
-        }
-    }
-    freeaddrinfo (sai);
-
     return fd;
 }
 
 int
-hev_sock_client_stun (int fd, int type, const char *daddr, const char *dport,
-                      const char *iface, unsigned int mark,
+hev_sock_client_stun (struct sockaddr *saddr, int type, const char *daddr,
+                      const char *dport, const char *iface, unsigned int mark,
                       unsigned int baddr[4], int *bport)
 {
     HevTask *task = hev_task_self ();
-    struct addrinfo sai;
-    struct addrinfo *dai;
-    struct sockaddr_storage saddr;
-    socklen_t saddrlen = sizeof (saddr);
+    struct sockaddr_storage taddr;
+    struct addrinfo sai, *dai;
+    socklen_t addrlen;
     int timeout = 30000;
     int res;
+    int fd;
 
-    res = getsockname (fd, (struct sockaddr *)&saddr, &saddrlen);
-    if (res < 0) {
-        LOG (E);
-        return -1;
+    switch (saddr->sa_family) {
+    case AF_INET:
+        addrlen = sizeof (struct sockaddr_in);
+        break;
+    case AF_INET6:
+        addrlen = sizeof (struct sockaddr_in6);
+        break;
     }
 
-    sai.ai_family = saddr.ss_family;
+    sai.ai_family = saddr->sa_family;
     sai.ai_socktype = type;
 
     dai = get_addr (sai.ai_family, sai.ai_socktype, daddr, dport, 0);
@@ -290,7 +261,7 @@ hev_sock_client_stun (int fd, int type, const char *daddr, const char *dport,
         return -1;
     }
 
-    res = bind (fd, (struct sockaddr *)&saddr, saddrlen);
+    res = bind (fd, saddr, addrlen);
     if (res < 0) {
         LOG (E);
         freeaddrinfo (dai);
@@ -310,7 +281,7 @@ hev_sock_client_stun (int fd, int type, const char *daddr, const char *dport,
         return -1;
     }
 
-    res = getsockname (fd, (struct sockaddr *)&saddr, &saddrlen);
+    res = getsockname (fd, (struct sockaddr *)&taddr, &addrlen);
     if (res < 0) {
         LOG (E);
         hev_task_del_fd (task, fd);
@@ -318,12 +289,12 @@ hev_sock_client_stun (int fd, int type, const char *daddr, const char *dport,
         return -1;
     }
 
-    if (saddr.ss_family == AF_INET) {
-        struct sockaddr_in *pa = (struct sockaddr_in *)&saddr;
+    if (taddr.ss_family == AF_INET) {
+        struct sockaddr_in *pa = (struct sockaddr_in *)&taddr;
         memcpy (baddr, &pa->sin_addr, 4);
         *bport = pa->sin_port;
-    } else if (saddr.ss_family == AF_INET6) {
-        struct sockaddr_in6 *pa = (struct sockaddr_in6 *)&saddr;
+    } else if (taddr.ss_family == AF_INET6) {
+        struct sockaddr_in6 *pa = (struct sockaddr_in6 *)&taddr;
         memcpy (baddr, &pa->sin6_addr, 16);
         *bport = pa->sin6_port;
     }
@@ -369,20 +340,27 @@ hev_sock_client_pfwd (int type, const char *addr, const char *port)
 }
 
 int
-hev_sock_server_pfwd (int fd, int type, const char *iface, unsigned int mark)
+hev_sock_server_pfwd (struct sockaddr *saddr, int type, const char *iface,
+                      unsigned int mark)
 {
+    struct sockaddr_storage baddr;
     struct addrinfo ai;
-    struct sockaddr_storage addr;
-    socklen_t addrlen = sizeof (addr);
+    socklen_t addrlen;
     int res;
+    int fd;
 
-    res = getsockname (fd, (struct sockaddr *)&addr, &addrlen);
-    if (res < 0) {
-        LOG (E);
-        return -1;
+    switch (saddr->sa_family) {
+    case AF_INET:
+        addrlen = sizeof (struct sockaddr_in);
+        break;
+    case AF_INET6:
+    default:
+        addrlen = sizeof (struct sockaddr_in6);
+        break;
     }
 
-    ai.ai_family = addr.ss_family;
+    memcpy (&baddr, saddr, addrlen);
+    ai.ai_family = baddr.ss_family;
     ai.ai_socktype = type;
 
     fd = get_sock (&ai);
@@ -391,8 +369,20 @@ hev_sock_server_pfwd (int fd, int type, const char *iface, unsigned int mark)
         return -1;
     }
 
-    res |= bind (fd, (struct sockaddr *)&addr, addrlen);
-    res |= bind_iface (fd, addr.ss_family, iface);
+#ifdef __MSYS__
+    if (type == SOCK_DGRAM) {
+        if (baddr.ss_family == AF_INET) {
+            struct sockaddr_in *pa = (struct sockaddr_in *)&baddr;
+            memset (&pa->sin_addr, 0, 4);
+        } else if (baddr.ss_family == AF_INET6) {
+            struct sockaddr_in6 *pa = (struct sockaddr_in6 *)&baddr;
+            memset (&pa->sin6_addr, 0, 16);
+        }
+    }
+#endif
+
+    res = bind (fd, (struct sockaddr *)&baddr, addrlen);
+    res |= bind_iface (fd, baddr.ss_family, iface);
     if (mark) {
         res |= bind_fwmark (fd, mark);
     }

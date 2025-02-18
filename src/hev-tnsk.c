@@ -2,7 +2,7 @@
  ============================================================================
  Name        : hev-tnsk.c
  Author      : hev <r@hev.cc>
- Copyright   : Copyright (c) 2022 xyz
+ Copyright   : Copyright (c) 2022 - 2025 xyz
  Description : TCP NAT session keeper
  ============================================================================
  */
@@ -24,12 +24,13 @@
 
 #include "hev-tnsk.h"
 
+static struct sockaddr_storage saddr;
 static HevTask *task;
 static int timeout;
 static int fd;
 
 static void
-http_keep_alive (int fd, const char *http)
+tnsk_keep_alive (int fd, const char *http)
 {
     static char buffer[8192];
     struct msghdr mh = { 0 };
@@ -72,23 +73,14 @@ http_keep_alive (int fd, const char *http)
 }
 
 static void
-stun_ready_handler (void)
-{
-    return;
-}
-
-static void
-stun_done_handler (void)
+stun_handler (void)
 {
     const char *tfwd = hev_conf_taddr ();
 
     if (tfwd) {
-        hev_tfwd_run (fd);
+        hev_tfwd_run ((struct sockaddr *)&saddr);
     }
 }
-
-static HevStunHandlerGroup handlers = { &stun_ready_handler,
-                                        &stun_done_handler };
 
 static void
 tnsk_run (void)
@@ -111,20 +103,21 @@ tnsk_run (void)
     iface = hev_conf_iface ();
     mark = hev_conf_mark ();
 
-    fd = hev_sock_client_tcp (type, addr, port, http, hport, iface, mark);
+    fd = hev_sock_client_base (type, SOCK_STREAM, addr, port, http, hport,
+                               iface, mark, &saddr, NULL);
     if (fd < 0) {
         LOGV (E, "%s", "Start TCP keep-alive service failed.");
         return;
     }
 
-    hev_stun_run (fd, &handlers);
+    hev_stun_run ((struct sockaddr *)&saddr, stun_handler);
 
-    timeout = 1;
-    http_keep_alive (fd, http);
+    tnsk_keep_alive (fd, http);
 
     if (tfwd) {
         hev_tfwd_kill ();
     }
+    hev_task_del_fd (hev_task_self (), fd);
     close (fd);
 }
 
