@@ -54,7 +54,7 @@ unsk_keep_alive (void)
         }
 
         fd = hev_ufwd_fd ();
-        if ((fd < 0) || (++n >= 5)) {
+        if ((fd < 0) || (++n >= 10)) {
             hev_stun_run ((struct sockaddr *)&saddr, stun_handler);
             n = 0;
             continue;
