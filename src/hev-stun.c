@@ -71,7 +71,10 @@ struct _StunMappedAddr
 
 static HevTask *task;
 static HevStunHandler handler;
-static int udp_retry = 50;
+static int udp_timeout;
+static int udp_retry1;
+static int udp_retry2;
+static int *udp_retry = &udp_retry1;
 
 static int
 cmp_addr (int family, unsigned int maddr[4], unsigned short mport,
@@ -147,28 +150,25 @@ stun_tcp (int fd, StunMessage *msg, void *buf, size_t size)
 static ssize_t
 stun_udp (int fd, StunMessage *msg, void *buf, size_t size)
 {
-    int timeout = 100;
     ssize_t len = -1;
     int i;
 
-    for (i = 0; i < udp_retry; i++) {
+    for (i = 0; i < *udp_retry; i++) {
         len = hev_task_io_socket_send (fd, msg, sizeof (StunMessage), 0,
-                                       io_yielder, &timeout);
+                                       io_yielder, &udp_timeout);
         if (len <= 0) {
             LOGV (E, "%s", "STUN UDP send failed.");
             return -1;
         }
 
-        len = hev_task_io_socket_recv (fd, buf, size, 0, io_yielder, &timeout);
+        len = hev_task_io_socket_recv (fd, buf, size, 0, io_yielder,
+                                       &udp_timeout);
         if (len > 0) {
             break;
         }
     }
 
-#ifdef __MSYS__
-    udp_retry = 5;
-#endif
-
+    udp_retry = &udp_retry2;
     return len;
 }
 
@@ -290,8 +290,8 @@ task_entry (void *data)
     const char *sport;
     unsigned int mark;
     int bport;
+    int loop;
     int mode;
-    int res;
     int fd;
 
     mode = hev_conf_mode ();
@@ -299,6 +299,18 @@ task_entry (void *data)
     sport = hev_conf_sport ();
     iface = hev_conf_iface ();
     mark = hev_conf_mark ();
+
+#ifdef __MSYS__
+    udp_timeout = 100;
+    udp_retry1 = 50;
+    udp_retry2 = 5;
+    loop = 0;
+#else
+    udp_timeout = 3000;
+    udp_retry1 = 10;
+    udp_retry2 = 10;
+    loop = (mode == SOCK_DGRAM);
+#endif
 
     fd = hev_sock_client_stun (data, mode, stun, sport, iface, mark, baddr,
                                &bport);
@@ -308,10 +320,17 @@ task_entry (void *data)
         goto exit;
     }
 
-    res = stun_bind (fd, mode, baddr, bport);
-    if (res < 0) {
-        LOG (E);
-        hev_xnsk_kill ();
+    for (;;) {
+        int res = stun_bind (fd, mode, baddr, bport);
+        if (res < 0) {
+            LOG (E);
+            hev_xnsk_kill ();
+        }
+
+        if (!loop)
+            break;
+
+        hev_task_yield (HEV_TASK_WAITIO);
     }
 
     hev_task_del_fd (hev_task_self (), fd);
