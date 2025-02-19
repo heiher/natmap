@@ -53,9 +53,7 @@ unsk_keep_alive (void)
             break;
         }
 
-#ifdef __MSYS__
         fd = hev_ufwd_fd ();
-#endif
         if ((fd < 0) || (++n >= 5)) {
             hev_stun_run ((struct sockaddr *)&saddr, stun_handler);
             n = 0;
