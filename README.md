@@ -89,6 +89,9 @@ This program will then call the script specified by the argument to inform the
 public address after the port mapping is established. The script can update
 the DNS record for external access.
 
+In UDP mode on Windows, make sure your application server is bound to `0.0.0.0`
+or `::`, not the local network IP.
+
 Please note that you need to open the firewall to allow access to the bind port.
 
 #### OpenWrt
