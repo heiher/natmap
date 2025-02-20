@@ -325,10 +325,12 @@ task_entry (void *data)
         if (res < 0) {
             LOG (E);
             hev_xnsk_kill ();
+            break;
         }
 
-        if (!loop)
+        if (!loop) {
             break;
+        }
 
         hev_task_yield (HEV_TASK_WAITIO);
     }
