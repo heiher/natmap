@@ -161,6 +161,34 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+  macos:
+    name: macOS
+    runs-on: macos-14
+    strategy:
+      matrix:
+        include:
+          - name: arm64
+            flags: -arch arm64 -mmacosx-version-min=11.0
+          - name: x86_64
+            flags: -arch x86_64 -mmacosx-version-min=10.6
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: true
+      - name: Build ${{ matrix.name }}
+        run: |
+          make CC=clang CFLAGS="${{ matrix.flags }}" LFLAGS="${{ matrix.flags }}" -j $(sysctl -n hw.logicalcpu)
+          cp bin/natmap natmap-darwin-${{ matrix.name }}
+      - name: Upload ${{ matrix.name }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: natmap-darwin-${{ matrix.name }}
+          path: natmap-darwin-${{ matrix.name }}
+          if-no-files-found: error
+          retention-days: 1
+
   release:
     name: Release
     runs-on: ubuntu-22.04
@@ -168,6 +196,7 @@ jobs:
       - source
       - linux
       - windows
+      - macos
     if: github.event_name == 'release'
     steps:
       - name: Checkout
@@ -187,20 +216,6 @@ jobs:
           for i in release/natmap-*; do
             gh release upload ${{ github.event.release.tag_name }} $i
           done
-
-  macos:
-    name: macOS
-    runs-on: macos-14
-    if: github.event_name != 'release'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-          submodules: true
-      - name: Build
-        run: |
-          make
 
   android:
     name: Android
