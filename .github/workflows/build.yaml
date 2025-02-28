@@ -189,6 +189,33 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+  freebsd:
+    name: FreeBSD
+    runs-on: ubuntu-22.04
+    if: github.event_name != 'release'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: true
+      - name: Build
+        uses: vmactions/freebsd-vm@v1
+        with:
+          usesh: true
+          prepare: |
+            pkg install -y gmake gcc
+          run: |
+            gmake
+            cp bin/natmap natmap-freebsd-x86_64
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: natmap-freebsd-x86_64
+          path: natmap-freebsd-x86_64
+          if-no-files-found: error
+          retention-days: 1
+
   release:
     name: Release
     runs-on: ubuntu-22.04
@@ -197,6 +224,7 @@ jobs:
       - linux
       - windows
       - macos
+      - freebsd
     if: github.event_name == 'release'
     steps:
       - name: Checkout
