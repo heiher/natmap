@@ -51,6 +51,7 @@ Options:
  -d                  run as daemon
  -i <interface>      network interface or IP address
  -k <interval>       seconds between each keep-alive
+ -c <count>          UDP STUN check cycle (every <count> intervals)
  -s <addr>[:port]    domain name or address of STUN server
  -h <addr>[:port]    domain name or address of HTTP server
  -e <path>           script path for notify mapped address

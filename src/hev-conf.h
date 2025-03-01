@@ -58,6 +58,15 @@ int hev_conf_type (void);
 int hev_conf_keep (void);
 
 /**
+ * hev_conf_ucount:
+ *
+ * Get the UDP STUN check cycle value.
+ *
+ * Returns: returns integer number.
+ */
+unsigned int hev_conf_ucount (void);
+
+/**
  * hev_conf_stun:
  *
  * Get STUN server address.

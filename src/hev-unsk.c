@@ -28,6 +28,7 @@ static struct sockaddr_storage saddr;
 static struct sockaddr_storage daddr;
 static HevTask *task;
 static int timeout;
+static unsigned int cycle;
 
 static void
 stun_handler (void)
@@ -54,7 +55,7 @@ unsk_keep_alive (void)
         }
 
         fd = hev_ufwd_fd ();
-        if ((fd < 0) || (++n >= 10)) {
+        if ((fd < 0) || (++n >= cycle)) {
             hev_stun_run ((struct sockaddr *)&saddr, stun_handler);
             n = 0;
             continue;
@@ -100,6 +101,7 @@ unsk_run (void)
     iface = hev_conf_iface ();
     mark = hev_conf_mark ();
     timeout = hev_conf_keep ();
+    cycle = hev_conf_ucount ();
 
     fd = hev_sock_client_base (type, SOCK_DGRAM, addr, port, stun, sport, iface,
                                mark, &saddr, &daddr);

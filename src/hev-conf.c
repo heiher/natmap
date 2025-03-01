@@ -21,6 +21,7 @@
 static int mode = SOCK_STREAM;
 static int type = AF_INET;
 static int keep;
+static unsigned int ucount;
 static int dmon;
 static int tmsec;
 static int bport[3];
@@ -52,6 +53,7 @@ hev_conf_help (void)
         " -d                  run as daemon\n"
         " -i <interface>      network interface or IP address\n"
         " -k <interval>       seconds between each keep-alive\n"
+        " -c <count>          UDP STUN check cycle (every <count> intervals)\n"
         " -s <addr>[:port]    domain name or address of STUN server\n"
         " -h <addr>[:port]    domain name or address of HTTP server\n"
         " -e <path>           script path for notify mapped address\n"
@@ -93,6 +95,9 @@ hev_conf_init (int argc, char *argv[])
             break;
         case 'k':
             keep = strtoul (optarg, NULL, 10) * 1000;
+            break;
+        case 'c':
+            ucount = strtoul (optarg, NULL, 10);
             break;
         case 's':
             sscanf (optarg, "%255[^:]:%5[0123456789]", stun, sport);
@@ -143,6 +148,10 @@ hev_conf_init (int argc, char *argv[])
         keep *= 1000;
     }
 
+    if (ucount <= 0) {
+        ucount = 10;
+    }
+
     if (!bport[0]) {
         bport[0] = 0;
     }
@@ -181,6 +190,12 @@ int
 hev_conf_keep (void)
 {
     return keep;
+}
+
+unsigned int
+hev_conf_ucount (void)
+{
+    return ucount;
 }
 
 const char *
