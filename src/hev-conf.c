@@ -79,7 +79,7 @@ hev_conf_init (int argc, char *argv[])
     int opt;
     struct sockaddr_in6 sa;
 
-    while ((opt = getopt (argc, argv, "46udk:s:h:e:f:b:T:t:p:i:")) != -1) {
+    while ((opt = getopt (argc, argv, "46udk:c:s:h:e:f:b:T:t:p:i:")) != -1) {
         switch (opt) {
         case '4':
             type = AF_INET;
