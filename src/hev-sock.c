@@ -24,6 +24,51 @@
 
 #include "hev-sock.h"
 
+typedef struct _SockConnectCtx SockConnectCtx;
+
+struct _SockConnectCtx
+{
+    int retries;
+    void *data;
+};
+
+static int
+connect_io_yielder (HevTaskYieldType type, void *data)
+{
+    SockConnectCtx *ctx = data;
+
+    ctx->retries++;
+    if (ctx->retries >= 100) {
+        errno = EADDRNOTAVAIL;
+        return -1;
+    }
+
+    return io_yielder (type, ctx->data);
+}
+
+static int
+sock_connect (int fd, const struct sockaddr *addr, socklen_t addr_len,
+              SockConnectCtx *ctx)
+{
+    int res;
+
+    ctx->retries = 0;
+    res = hev_task_io_socket_connect (fd, addr, addr_len, connect_io_yielder,
+                                      ctx);
+    if (res < 0) {
+        if (errno == EADDRNOTAVAIL) {
+            LOGV (E, "%s",
+                  "Cannot assign requested address, "
+                  "Please check is another instance exists or wait a minute. "
+                  "More: https://github.com/heiher/natmap/issues/27");
+        } else {
+            LOGV (E, "%s", strerror (errno));
+        }
+    }
+
+    return res;
+}
+
 static struct addrinfo *
 get_addr (int family, int type, const char *addr, const char *port, int passive)
 {
@@ -126,6 +171,7 @@ hev_sock_client_base (int family, int type, const char *saddr,
     struct addrinfo *sai;
     struct addrinfo *dai;
     int timeout = 30000;
+    SockConnectCtx ctx;
     socklen_t addrlen;
     int res;
     int fd;
@@ -183,18 +229,10 @@ hev_sock_client_base (int family, int type, const char *saddr,
 
     hev_task_add_fd (task, fd, POLLIN | POLLOUT);
 
-    res = hev_task_io_socket_connect (fd, dai->ai_addr, dai->ai_addrlen,
-                                      io_yielder, &timeout);
+    ctx.data = &timeout;
+    res = sock_connect (fd, dai->ai_addr, dai->ai_addrlen, &ctx);
     freeaddrinfo (dai);
     if (res < 0) {
-        if (errno == EADDRNOTAVAIL) {
-            LOGV (E, "%s",
-                  "Cannot assign requested address, "
-                  "Please check is another instance exists or wait a minute. "
-                  "More: https://github.com/heiher/natmap/issues/27");
-        } else {
-            LOGV (E, "%s", strerror (errno));
-        }
         hev_task_del_fd (task, fd);
         close (fd);
         return -1;
@@ -220,8 +258,9 @@ hev_sock_client_stun (struct sockaddr *saddr, int type, const char *daddr,
     HevTask *task = hev_task_self ();
     struct sockaddr_storage taddr;
     struct addrinfo sai, *dai;
-    socklen_t addrlen;
     int timeout = 30000;
+    SockConnectCtx ctx;
+    socklen_t addrlen;
     int res;
     int fd;
 
@@ -271,11 +310,10 @@ hev_sock_client_stun (struct sockaddr *saddr, int type, const char *daddr,
 
     hev_task_add_fd (task, fd, POLLIN | POLLOUT);
 
-    res = hev_task_io_socket_connect (fd, dai->ai_addr, dai->ai_addrlen,
-                                      io_yielder, &timeout);
+    ctx.data = &timeout;
+    res = sock_connect (fd, dai->ai_addr, dai->ai_addrlen, &ctx);
     freeaddrinfo (dai);
     if (res < 0) {
-        LOG (E);
         hev_task_del_fd (task, fd);
         close (fd);
         return -1;
