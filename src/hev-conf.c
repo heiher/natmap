@@ -2,7 +2,7 @@
  ============================================================================
  Name        : hev-conf.c
  Author      : hev <r@hev.cc>
- Copyright   : Copyright (c) 2022 xyz
+ Copyright   : Copyright (c) 2022 - 2025 xyz
  Description : Conf
  ============================================================================
  */
@@ -24,6 +24,7 @@ static int keep;
 static unsigned int ucount;
 static int dmon;
 static int tmsec;
+static int brand;
 static int bport[3];
 static unsigned int mark;
 
@@ -60,9 +61,10 @@ hev_conf_help (void)
         " -f <mark>           fwmark value (hex: 0x1, dec: 1, oct: 01)\n"
         "\n"
         "Bind options:\n"
-        " -b <port>[-port]    port number range for binding\n"
+        " -b                  port number range for binding\n"
         "                     - <0>: random allocation\n"
         "                     - <port>: specified\n"
+        "                     - <port>~<port>: random allocation within the range\n"
         "                     - <port>-<port>: sequential allocation within the range\n"
         "\n"
         "Forward options:\n"
@@ -76,8 +78,9 @@ hev_conf_help (void)
 int
 hev_conf_init (int argc, char *argv[])
 {
-    int opt;
     struct sockaddr_in6 sa;
+    int opt;
+    char c;
 
     while ((opt = getopt (argc, argv, "46udk:c:s:h:e:f:b:T:t:p:i:")) != -1) {
         switch (opt) {
@@ -112,7 +115,7 @@ hev_conf_init (int argc, char *argv[])
             mark = strtoul (optarg, NULL, 0);
             break;
         case 'b':
-            sscanf (optarg, "%u-%u", &bport[0], &bport[1]);
+            sscanf (optarg, "%u%c%u", &bport[0], &c, &bport[1]);
             break;
         case 'T':
             tmsec = strtoul (optarg, NULL, 10) * 1000;
@@ -152,6 +155,10 @@ hev_conf_init (int argc, char *argv[])
         ucount = 10;
     }
 
+    if (c == '~') {
+        brand = 1;
+    }
+
     if (!bport[0]) {
         bport[0] = 0;
     }
@@ -159,6 +166,10 @@ hev_conf_init (int argc, char *argv[])
         bport[1] = bport[0];
     }
     bport[2] = bport[0];
+
+    if (bport[0] > bport[1]) {
+        return -1;
+    }
 
     if (iface && inet_pton (type, iface, &sa)) {
         baddr = iface;
@@ -233,11 +244,18 @@ hev_conf_bport (void)
 {
     static char port[16];
 
+    if (brand) {
+        int n = bport[1] - bport[0] + 1;
+        bport[2] = bport[0] + (rand () % n);
+    }
+
     snprintf (port, sizeof (port) - 1, "%u", bport[2]);
 
-    bport[2] = bport[2] + 1;
-    if (bport[2] > bport[1]) {
-        bport[2] = bport[0];
+    if (!brand) {
+        bport[2] = bport[2] + 1;
+        if (bport[2] > bport[1]) {
+            bport[2] = bport[0];
+        }
     }
 
     return port;

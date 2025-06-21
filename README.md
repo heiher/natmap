@@ -58,9 +58,10 @@ Options:
  -f <mark>           fwmark value (hex: 0x1, dec: 1, oct: 01)
 
 Bind options:
- -b <port>[-port]    port number range for binding
+ -b                  port number range for binding
                      - <0>: random allocation
                      - <port>: specified
+                     - <port>~<port>: random allocation within the range
                      - <port>-<port>: sequential allocation within the range
 
 Forward options:
