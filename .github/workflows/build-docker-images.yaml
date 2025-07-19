@@ -40,6 +40,16 @@ jobs:
         echo "version=$LATEST_TAG" >> $GITHUB_OUTPUT
         echo "Using version: $LATEST_TAG"
 
+    - name: Login GitHub Packages Docker Image Repository
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set lowercase owner name
+      run: echo "REPO_OWNER_LC=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
     - uses: docker/build-push-action@v5
       with:
         context: .
@@ -50,5 +60,5 @@ jobs:
           VERSION=${{ steps.vars.outputs.version }}
           ARCH=${{ matrix.docker_arch }}
         tags: |
-          ${{ secrets.DOCKER_USERNAME }}/natmap:${{ steps.vars.outputs.version }}-${{ matrix.arch }}
-          ${{ secrets.DOCKER_USERNAME }}/natmap:latest-${{ matrix.arch }}
+          ghcr.io/${{ env.REPO_OWNER_LC }}/natmap:${{ steps.vars.outputs.version }}-${{ matrix.arch }}
+          ghcr.io/${{ env.REPO_OWNER_LC }}/natmap:latest-${{ matrix.arch }}
