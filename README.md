@@ -196,6 +196,7 @@ services:
 ## Contributors
 * **abgelehnt** - https://github.com/abgelehnt
 * **hev** - https://hev.cc
+* **lxeon** - https://github.com/lxeon
 * **mike wang** - https://github.com/mikewang000000
 * **muink** - https://github.com/muink
 * **tianling shen** - https://github.com/1715173329
