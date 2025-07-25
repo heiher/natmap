@@ -2,6 +2,9 @@ FROM ubuntu:latest
 ARG VERSION
 ARG ARCH
 
+LABEL org.opencontainers.image.version=${VERSION}
+LABEL org.opencontainers.image.architecture=${ARCH}
+
 RUN apt update \
     && apt upgrade -y \
     && apt install -y curl

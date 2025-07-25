@@ -1,4 +1,4 @@
-name: Build Docker images and push
+name: Build and Push Multi-arch Docker Images
 
 on:
   workflow_run:
@@ -8,13 +8,37 @@ on:
   workflow_dispatch:
 
 jobs:
-  release:
+  prepare:
     runs-on: ubuntu-latest
     if: >
       (github.event_name == 'workflow_run' &&
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'release') ||
       github.event_name == 'workflow_dispatch'
+    outputs:
+      version: ${{ steps.vars.outputs.version }}
+      repo_owner_lc: ${{ steps.set-owner.outputs.repo_owner_lc }}
+    steps:
+    - name: Get release version
+      id: vars
+      run: |
+        LATEST_TAG=$(curl -s https://api.github.com/repos/heiher/natmap/releases/latest | jq -r .tag_name)
+        if [ -z "$LATEST_TAG" ]; then
+          LATEST_TAG="master"
+        fi
+        echo "version=$LATEST_TAG" >> $GITHUB_OUTPUT
+        echo "Using version: $LATEST_TAG"
+        
+    - name: Set lowercase owner name
+      id: set-owner
+      run: |
+        OWNER_LC=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+        echo "repo_owner_lc=$OWNER_LC" >> $GITHUB_OUTPUT
+
+  build_and_push:
+    needs: prepare
+    if: needs.prepare.result == 'success'
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
@@ -25,35 +49,56 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: docker/setup-buildx-action@v3
-    - name: Get release version
-      id: vars
-      run: |
-        LATEST_TAG=$(curl -s https://api.github.com/repos/heiher/natmap/releases/latest | jq -r .tag_name)
-        if [ -z "$LATEST_TAG" ]; then
-          LATEST_TAG="master"
-        fi
-        echo "version=$LATEST_TAG" >> $GITHUB_OUTPUT
-        echo "Using version: $LATEST_TAG"
+      with:
+        driver: docker-container
+        platforms: linux/${{ matrix.arch }}
 
-    - name: Login GitHub Packages Docker Image Repository
+    - name: Login to GitHub Container Registry
       uses: docker/login-action@v3
       with:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Set lowercase owner name
-      run: echo "REPO_OWNER_LC=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-
-    - uses: docker/build-push-action@v5
+    - name: Build and push platform-specific image
+      uses: docker/build-push-action@v5
       with:
         context: .
         file: ./docker/Dockerfile
-        push: true
         platforms: linux/${{ matrix.arch }}
-        build-args: |
-          VERSION=${{ steps.vars.outputs.version }}
-          ARCH=${{ matrix.docker_arch }}
+        push: true
         tags: |
-          ghcr.io/${{ env.REPO_OWNER_LC }}/natmap:${{ steps.vars.outputs.version }}-${{ matrix.arch }}
-          ghcr.io/${{ env.REPO_OWNER_LC }}/natmap:latest-${{ matrix.arch }}
+          ghcr.io/${{ needs.prepare.outputs.repo_owner_lc }}/natmap:${{ needs.prepare.outputs.version }}-${{ matrix.arch }}
+        build-args: |
+          VERSION=${{ needs.prepare.outputs.version }}
+          ARCH=${{ matrix.docker_arch }}
+        provenance: false
+        sbom: false
+
+  create_multiarch_manifest:
+    needs: [prepare, build_and_push]
+    if: needs.prepare.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create and push manifest for versioned tag
+      run: |
+        docker manifest create ghcr.io/${{ needs.prepare.outputs.repo_owner_lc }}/natmap:${{ needs.prepare.outputs.version }} \
+          --amend ghcr.io/${{ needs.prepare.outputs.repo_owner_lc }}/natmap:${{ needs.prepare.outputs.version }}-amd64 \
+          --amend ghcr.io/${{ needs.prepare.outputs.repo_owner_lc }}/natmap:${{ needs.prepare.outputs.version }}-arm64
+        
+        docker manifest push ghcr.io/${{ needs.prepare.outputs.repo_owner_lc }}/natmap:${{ needs.prepare.outputs.version }}
+
+    - name: Create and push manifest for latest tag
+      run: |
+        docker manifest create ghcr.io/${{ needs.prepare.outputs.repo_owner_lc }}/natmap:latest \
+          --amend ghcr.io/${{ needs.prepare.outputs.repo_owner_lc }}/natmap:${{ needs.prepare.outputs.version }}-amd64 \
+          --amend ghcr.io/${{ needs.prepare.outputs.repo_owner_lc }}/natmap:${{ needs.prepare.outputs.version }}-arm64
+        
+        docker manifest push ghcr.io/${{ needs.prepare.outputs.repo_owner_lc }}/natmap:latest
