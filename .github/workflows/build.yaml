@@ -144,7 +144,7 @@ jobs:
         run: |
           export MSYS=winsymlinks:native
           git clone --depth=1 --recursive file://`pwd` work; cd work
-          make LFLAGS="-lmsys-2.0 -lws2_32" -j`nproc`
+          make -j`nproc`
           mkdir natmap
           cp bin/natmap* natmap
           wget -P natmap https://github.com/heiher/msys2/releases/latest/download/msys-2.0.dll
