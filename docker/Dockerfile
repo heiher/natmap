@@ -1,17 +1,14 @@
 FROM ubuntu:latest
-ARG VERSION
-ARG ARCH
+ARG NATMAP_ARCH
 
-LABEL org.opencontainers.image.version=${VERSION}
-LABEL org.opencontainers.image.architecture=${ARCH}
+LABEL org.opencontainers.image.source="https://github.com/heiher/natmap"
 
 RUN apt update \
     && apt upgrade -y \
     && apt install -y curl
 
 WORKDIR /opt
-
-ADD https://github.com/heiher/natmap/releases/download/${VERSION}/natmap-linux-${ARCH} /opt/natmap
+COPY ./tmp/artifact/natmap-linux-${NATMAP_ARCH}/natmap-linux-${NATMAP_ARCH} /opt/natmap
 RUN chmod +x /opt/natmap
 
 ENTRYPOINT ["/opt/natmap"]

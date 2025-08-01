@@ -171,7 +171,7 @@ ports for easy distribution through DNS AAAA records.
 
 ### Docker
 
-* Support **amd64** and **arm64**.
+* Support **amd64**, **arm64**, **arm**, **riscv64**, **s390x**.
 * image tags: latest, [release tags] like 20250512
 * Change command to what you want.
 * volumes script path, and make sure have permission to run.
