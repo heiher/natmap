@@ -171,8 +171,8 @@ ports for easy distribution through DNS AAAA records.
 
 ### Docker
 
-* Support **amd64** and **arm64**.
-* image tags: latest-amd64, latest-arm64 or [release tags]-amd64 like 20250512-amd64
+* Support **amd64**, **arm64**, **arm**, **riscv64**, **s390x**.
+* image tags: latest, [release tags] like 20250512
 * Change command to what you want.
 * volumes script path, and make sure have permission to run.
 
@@ -181,7 +181,7 @@ docker-compose.yml
 services:
   natmap:
     container_name: natmap
-    image: heiher/natmap:latest-amd64
+    image: ghcr.io/heiher/natmap:latest
     command: -u -s stun.qq.com -b 30101 -t 127.0.0.1 -p 51820 -e /opt/cf_ip4p.sh -k 60
     volumes:
       - ./natmap/cf_ip4p.sh:/opt/cf_ip4p.sh

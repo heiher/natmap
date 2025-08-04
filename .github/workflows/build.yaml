@@ -275,3 +275,141 @@ jobs:
       - name: Build
         run: |
           make CC=clang ENABLE_STATIC=1 -j`nproc`
+
+  docker-prepare:
+    needs: linux
+    runs-on: ubuntu-latest
+    outputs:
+      repo_name_lc: ${{ steps.set-repo.outputs.repo_name_lc }}
+    steps:
+      - name: Set lowercase repo name
+        id: set-repo
+        run: |
+          REPO_NAME_LC=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "repo_name_lc=$REPO_NAME_LC" >> $GITHUB_OUTPUT
+
+  docker-build-and-push:
+    needs: docker-prepare
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            natmap_arch: x86_64
+          - arch: arm64
+            natmap_arch: arm64
+          - arch: arm
+            natmap_arch: arm32v7
+          - arch: riscv64
+            natmap_arch: riscv64
+          - arch: s390x
+            natmap_arch: s390x
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+          platforms: linux/${{ matrix.arch }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download built arch artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: natmap-linux-${{matrix.natmap_arch}}
+          path: ./tmp/artifact
+
+      - name: Build and push platform-specific image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          platforms: linux/${{ matrix.arch }}
+          outputs: type=image,name=ghcr.io/${{ needs.docker-prepare.outputs.repo_name_lc }},push-by-digest=true,name-canonical=true,push=${{ github.event_name != 'pull_request' }}
+          build-args: |
+            NATMAP_ARCH=${{ matrix.natmap_arch }}
+          provenance: false
+          sbom: false
+
+      - name: Export Digest
+        if: github.event_name != 'pull_request'
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+          ls -l /tmp/digests/
+
+      - name: Upload Digest
+        uses: actions/upload-artifact@v4
+        if: github.event_name != 'pull_request'
+        with:
+          name: docker-digest-${{ matrix.arch }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  docker-merge:
+    needs: [docker-prepare, docker-build-and-push]
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    steps:
+      - name: Download Digests
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: docker-digest-*
+          merge-multiple: true
+
+      - name: Prepare Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Format Docker Image Meta
+        uses: docker/metadata-action@v5
+        id: docker_meta
+        with:
+          images: ghcr.io/${{ needs.docker-prepare.outputs.repo_name_lc }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=nightly,enable={{is_default_branch}}
+            type=ref,event=tag
+      - name: Create Manifest List and Push
+        working-directory: /tmp/digests
+        run: |
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf 'ghcr.io/${{ needs.docker-prepare.outputs.repo_name_lc }}@sha256:%s ' *)
+      - name: Inspect image
+        run: |
+          docker buildx imagetools inspect ghcr.io/${{ needs.docker-prepare.outputs.repo_name_lc }}:${{ steps.docker_meta.outputs.version }}
+
+      - name: Delete current run's built artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          sudo apt-get update && sudo apt-get install -y gh
+          echo "Deleting docker-digests artifacts for run ID: $RUN_ID"
+
+          gh api \
+            "repos/${{ github.repository }}/actions/runs/$RUN_ID/artifacts" \
+            -q '.artifacts[] | select(.name | startswith("docker-digest")) | .id' |
+          while read ARTIFACT_ID; do
+            echo "Deleting artifact ID: $ARTIFACT_ID"
+            gh api --method DELETE "repos/${{ github.repository }}/actions/artifacts/$ARTIFACT_ID"
+          done
