@@ -169,6 +169,15 @@ ports for easy distribution through DNS AAAA records.
 2001::{port}:{ipv4-hi16}:{ipv4-lo16}
 ```
 
+### OpenWrt 22.03+
+
+Repo: https://github.com/openwrt/packages/tree/master/net/natmap
+
+```sh
+# Install package
+opkg install natmap luci-app-natmap
+```
+
 ### Docker
 
 * Support **amd64**, **arm64**, **arm**, **riscv64**, **s390x**.
