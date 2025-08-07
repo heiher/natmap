@@ -1,7 +1,7 @@
 # NATMap
 
-[![status](https://github.com/heiher/natmap/actions/workflows/build.yaml/badge.svg?branch=master&event=push)](https://github.com/heiher/natmap)
-[![chat](https://github.com/heiher/natmap/raw/master/.github/badges/telegram.svg)](https://t.me/hellonatter)
+[![status](https://github.com/heiher/natmap/actions/workflows/build.yaml/badge.svg?branch=main&event=push)](https://github.com/heiher/natmap)
+[![chat](https://github.com/heiher/natmap/raw/main/.github/badges/telegram.svg)](https://t.me/hellonatter)
 
 This project is used to establish a TCP/UDP port mapping from an ISP NAT public
 address to local private address. If all layers of NAT are full cones (NAT-1),
