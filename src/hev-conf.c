@@ -179,7 +179,7 @@ hev_conf_init (int argc, char *argv[])
     }
 
     if (tmsec <= 0) {
-        tmsec = 120000;
+        tmsec = 300000;
     }
 
     return 0;
