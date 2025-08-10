@@ -16,7 +16,9 @@
 #include <sys/socket.h>
 
 #if defined(__linux__)
+#include <netinet/in.h>
 #include <sys/syscall.h>
+#include <netinet/tcp.h>
 #endif
 
 #include "hev-misc.h"
@@ -235,6 +237,16 @@ hev_reuse_port (const char *port)
     }
 
     return result;
+}
+
+int
+hev_tcp_cca (int fd, const char *algo)
+{
+#ifdef __linux__
+    return setsockopt (fd, IPPROTO_TCP, TCP_CONGESTION, algo, strlen (algo));
+#else
+    return 0;
+#endif
 }
 
 int

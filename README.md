@@ -65,6 +65,7 @@ Bind options:
                      - <port>-<port>: sequential allocation within the range
 
 Forward options:
+ -C <congestion>     TCP congestion control algorithm
  -T <timeout>        port forwarding timeout in seconds
  -t <address>        domain name or address of forward target
  -p <port>           port number of forward target (0: use public port)

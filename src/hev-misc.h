@@ -58,6 +58,16 @@ int hev_io_yielder (HevTaskYieldType type, void *data);
 int hev_reuse_port (const char *port);
 
 /**
+ * hev_tcp_cca:
+ * @algo: congestion control algorithm
+ *
+ * Set the TCP congestion control algorithm.
+ *
+ * Returns: returns zero on successful, otherwise returns -1.
+ */
+int hev_tcp_cca (int fd, const char *algo);
+
+/**
  * hev_run_daemon:
  *
  * Run as daemon.

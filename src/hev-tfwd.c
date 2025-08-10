@@ -39,6 +39,7 @@ client_task_entry (void *data)
     HevTask *task = hev_task_self ();
     const char *addr;
     const char *port;
+    const char *tcca;
     int timeout;
     int mode;
     int sfd;
@@ -48,6 +49,7 @@ client_task_entry (void *data)
     mode = hev_conf_mode ();
     addr = hev_conf_taddr ();
     port = hev_conf_tport ();
+    tcca = hev_conf_ttcca ();
     timeout = hev_conf_tmsec ();
 
     if (strtoul (port, NULL, 10) == 0)
@@ -58,6 +60,11 @@ client_task_entry (void *data)
         LOG (W);
         close (sfd);
         return;
+    }
+
+    if (tcca) {
+        if (hev_tcp_cca (sfd, tcca) < 0)
+            LOGV (W, "%s", "TCP congeston control failed.");
     }
 
     hev_task_add_fd (task, sfd, POLLIN | POLLOUT);

@@ -148,6 +148,15 @@ const char *hev_conf_tport (void);
 int hev_conf_tmsec (void);
 
 /**
+ * hev_conf_ttcca:
+ *
+ * Get TCP congestion control algorithm for port forwarding.
+ *
+ * Returns: returns string.
+ */
+const char *hev_conf_ttcca (void);
+
+/**
  * hev_conf_mport:
  * @port: port number
  *

@@ -38,6 +38,7 @@ static const char *path;
 static const char *baddr;
 static const char *taddr;
 static const char *tport;
+static const char *ttcca;
 static const char *iface;
 
 const char *
@@ -68,6 +69,7 @@ hev_conf_help (void)
         "                     - <port>-<port>: sequential allocation within the range\n"
         "\n"
         "Forward options:\n"
+        " -C <congestion>     TCP congestion control algorithm\n"
         " -T <timeout>        port forwarding timeout in seconds\n"
         " -t <address>        domain name or address of forward target\n"
         " -p <port>           port number of forward target (0: use public port)\n";
@@ -82,7 +84,7 @@ hev_conf_init (int argc, char *argv[])
     int opt;
     char c;
 
-    while ((opt = getopt (argc, argv, "46udk:c:s:h:e:f:b:T:t:p:i:")) != -1) {
+    while ((opt = getopt (argc, argv, "46udk:c:s:h:e:f:b:C:T:t:p:i:")) != -1) {
         switch (opt) {
         case '4':
             type = AF_INET;
@@ -116,6 +118,9 @@ hev_conf_init (int argc, char *argv[])
             break;
         case 'b':
             sscanf (optarg, "%u%c%u", &bport[0], &c, &bport[1]);
+            break;
+        case 'C':
+            ttcca = optarg;
             break;
         case 'T':
             tmsec = strtoul (optarg, NULL, 10) * 1000;
@@ -277,6 +282,12 @@ int
 hev_conf_tmsec (void)
 {
     return tmsec;
+}
+
+const char *
+hev_conf_ttcca (void)
+{
+    return ttcca;
 }
 
 const char *
