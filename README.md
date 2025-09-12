@@ -191,7 +191,7 @@ docker-compose.yml
 services:
   natmap:
     container_name: natmap
-    image: ghcr.io/heiher/natmap:latest
+    image: ghcr.io/heiher/natmap:main
     command: -u -s stun.qq.com -b 30101 -t 127.0.0.1 -p 51820 -e /opt/cf_ip4p.sh -k 60
     volumes:
       - ./natmap/cf_ip4p.sh:/opt/cf_ip4p.sh
