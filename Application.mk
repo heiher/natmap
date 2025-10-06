@@ -14,7 +14,7 @@
 #
 
 APP_OPTIM := release
-APP_PLATFORM := android-21
+APP_PLATFORM := android-29
 APP_ABI := all
 APP_CFLAGS := -O3
 APP_SUPPORT_FLEXIBLE_PAGE_SIZES := true
