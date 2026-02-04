@@ -204,6 +204,16 @@ services:
     restart: always
 ```
 
+### Windows
+#### Scoop
+
+Manifest: https://github.com/ScoopInstaller/Main/blob/master/bucket/natmap.json
+
+```pwsh
+scoop bucket add main
+scoop install main/natmap
+```
+
 ## Contributors
 * **abgelehnt** - https://github.com/abgelehnt
 * **hev** - https://hev.cc
