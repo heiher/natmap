@@ -24,6 +24,7 @@ static int keep;
 static unsigned int ucount;
 static int dmon;
 static int tmsec;
+static int wsec;
 static int brand;
 static int bport[3];
 static unsigned int mark;
@@ -67,6 +68,7 @@ hev_conf_help (void)
         "                     - <port>: specified\n"
         "                     - <port>~<port>: random allocation within the range\n"
         "                     - <port>-<port>: sequential allocation within the range\n"
+        " -w <timeout>        waiting timeout in seconds before switching port (default: 0)\n"
         "\n"
         "Forward options:\n"
         " -C <congestion>     TCP congestion control algorithm\n"
@@ -84,7 +86,7 @@ hev_conf_init (int argc, char *argv[])
     int opt;
     char c;
 
-    while ((opt = getopt (argc, argv, "46udk:c:s:h:e:f:b:C:T:t:p:i:")) != -1) {
+    while ((opt = getopt (argc, argv, "46udk:c:s:h:e:f:b:C:T:t:p:i:w:")) != -1) {
         switch (opt) {
         case '4':
             type = AF_INET;
@@ -133,6 +135,9 @@ hev_conf_init (int argc, char *argv[])
             break;
         case 'i':
             iface = optarg;
+            break;
+        case 'w':
+            wsec = strtoul (optarg, NULL, 10);
             break;
         default:
             return -1;
@@ -185,6 +190,10 @@ hev_conf_init (int argc, char *argv[])
 
     if (tmsec <= 0) {
         tmsec = 300000;
+    }
+
+    if (wsec < 0) {
+        wsec = 0;
     }
 
     return 0;
@@ -321,4 +330,10 @@ const char *
 hev_conf_hport (void)
 {
     return hport;
+}
+
+int
+hev_conf_wsec (void)
+{
+    return wsec;
 }

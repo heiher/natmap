@@ -8,8 +8,10 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <netinet/in.h>
+#include <time.h>
 
 #include <hev-task.h>
 #include <hev-task-io.h>
@@ -29,6 +31,8 @@ static struct sockaddr_storage daddr;
 static HevTask *task;
 static int timeout;
 static unsigned int cycle;
+static time_t last_connect_time;
+static int current_port;
 
 static void
 stun_handler (void)
@@ -79,6 +83,23 @@ unsk_keep_alive (void)
     } while (timeout);
 }
 
+static int
+should_switch_port_udp (void)
+{
+    int wsec = hev_conf_wsec ();
+    
+    if (wsec == 0) {
+        return 1;
+    }
+    
+    time_t now = time (NULL);
+    if (now - last_connect_time >= wsec) {
+        return 1;
+    }
+    
+    return 0;
+}
+
 static void
 unsk_run (void)
 {
@@ -91,17 +112,28 @@ unsk_run (void)
     unsigned int mark;
     int type;
     int fd;
+    int port_num;
 
     type = hev_conf_type ();
     ufwd = hev_conf_taddr ();
     addr = hev_conf_baddr ();
     port = hev_conf_bport ();
+    port_num = atoi(port);
     stun = hev_conf_stun ();
     sport = hev_conf_sport ();
     iface = hev_conf_iface ();
     mark = hev_conf_mark ();
     timeout = hev_conf_keep ();
     cycle = hev_conf_ucount ();
+
+    if (current_port != 0 && !should_switch_port_udp ()) {
+        char current_port_str[16];
+        snprintf(current_port_str, sizeof(current_port_str), "%d", current_port);
+        port = current_port_str;
+    } else {
+        current_port = port_num;
+        last_connect_time = time (NULL);
+    }
 
     fd = hev_sock_client_base (type, SOCK_DGRAM, addr, port, stun, sport, iface,
                                mark, &saddr, &daddr);

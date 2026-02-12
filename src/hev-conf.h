@@ -148,6 +148,15 @@ const char *hev_conf_tport (void);
 int hev_conf_tmsec (void);
 
 /**
+ * hev_conf_wsec:
+ *
+ * Get timeout seconds before switching port.
+ *
+ * Returns: returns integer number.
+ */
+int hev_conf_wsec (void);
+
+/**
  * hev_conf_ttcca:
  *
  * Get TCP congestion control algorithm for port forwarding.
@@ -201,5 +210,14 @@ const char *hev_conf_sport (void);
  * Returns: returns string.
  */
 const char *hev_conf_hport (void);
+
+/**
+ * hev_conf_wsec:
+ *
+ * Get timeout seconds before switching port.
+ *
+ * Returns: returns integer number.
+ */
+int hev_conf_wsec (void);
 
 #endif /* __HEV_CONF_H__ */
