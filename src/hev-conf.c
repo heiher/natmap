@@ -27,6 +27,7 @@ static int tmsec;
 static int brand;
 static int bport[3];
 static unsigned int mark;
+static int twait = 0;
 
 static char mport[16];
 static char sport[16] = "3478";
@@ -67,6 +68,7 @@ hev_conf_help (void)
         "                     - <port>: specified\n"
         "                     - <port>~<port>: random allocation within the range\n"
         "                     - <port>-<port>: sequential allocation within the range\n"
+        " -w <timeout>        waiting timeout for port reuse (0: disable port reuse)\n"
         "\n"
         "Forward options:\n"
         " -C <congestion>     TCP congestion control algorithm\n"
@@ -84,7 +86,7 @@ hev_conf_init (int argc, char *argv[])
     int opt;
     char c;
 
-    while ((opt = getopt (argc, argv, "46udk:c:s:h:e:f:b:C:T:t:p:i:")) != -1) {
+    while ((opt = getopt (argc, argv, "46udk:c:s:h:e:f:b:w:C:T:t:p:i:")) != -1) {
         switch (opt) {
         case '4':
             type = AF_INET;
@@ -118,6 +120,9 @@ hev_conf_init (int argc, char *argv[])
             break;
         case 'b':
             sscanf (optarg, "%u%c%u", &bport[0], &c, &bport[1]);
+            break;
+        case 'w':
+            twait = strtol (optarg, NULL, 10);
             break;
         case 'C':
             ttcca = optarg;
@@ -264,6 +269,12 @@ hev_conf_bport (void)
     }
 
     return port;
+}
+
+int
+hev_conf_twait (void)
+{
+    return twait;
 }
 
 const char *

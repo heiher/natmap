@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
+#include <arpa/inet.h>
 
 #include <hev-task.h>
 #include <hev-task-io.h>
@@ -25,6 +27,8 @@
 #include "hev-tnsk.h"
 
 static struct sockaddr_storage saddr;
+static char saved_port[16];
+static time_t last_stun_time = 0;
 static HevTask *task;
 static int timeout;
 static int fd;
@@ -77,6 +81,16 @@ stun_handler (void)
 {
     const char *tfwd = hev_conf_taddr ();
 
+    last_stun_time = time (NULL);
+    
+    if (saddr.ss_family == AF_INET) {
+        struct sockaddr_in *ad = (struct sockaddr_in *)&saddr;
+        snprintf (saved_port, sizeof (saved_port), "%u", ntohs (ad->sin_port));
+    } else {
+        struct sockaddr_in6 *ad = (struct sockaddr_in6 *)&saddr;
+        snprintf (saved_port, sizeof (saved_port), "%u", ntohs (ad->sin6_port));
+    }
+
     if (tfwd) {
         hev_tfwd_run ((struct sockaddr *)&saddr);
     }
@@ -92,16 +106,25 @@ tnsk_run (void)
     const char *hport;
     const char *iface;
     unsigned int mark;
+    int twait;
     int type;
+
+    time_t now = time (NULL);
 
     type = hev_conf_type ();
     http = hev_conf_http ();
     tfwd = hev_conf_taddr ();
     addr = hev_conf_baddr ();
-    port = hev_conf_bport ();
     hport = hev_conf_hport ();
     iface = hev_conf_iface ();
     mark = hev_conf_mark ();
+    twait = hev_conf_twait ();
+
+    if (last_stun_time != 0 && (now - last_stun_time <= twait)) {
+        port = saved_port;
+    } else {
+        port = hev_conf_bport ();
+    }
 
     fd = hev_sock_client_base (type, SOCK_STREAM, addr, port, http, hport,
                                iface, mark, &saddr, NULL);

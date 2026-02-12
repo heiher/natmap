@@ -202,4 +202,13 @@ const char *hev_conf_sport (void);
  */
 const char *hev_conf_hport (void);
 
+/**
+ * hev_conf_twait:
+ *
+ * Get port reuse timeout in seconds.
+ *
+ * Returns: returns integer number.
+ */
+int hev_conf_twait (void);
+
 #endif /* __HEV_CONF_H__ */
