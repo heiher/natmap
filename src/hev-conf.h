@@ -113,12 +113,13 @@ const char *hev_conf_baddr (void);
 
 /**
  * hev_conf_bport:
+ * @next: switch to the next port
  *
  * Get bind port for port mapping.
  *
  * Returns: returns string.
  */
-const char *hev_conf_bport (void);
+const char *hev_conf_bport (int next);
 
 /**
  * hev_conf_taddr:

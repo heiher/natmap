@@ -27,6 +27,7 @@
 static struct sockaddr_storage saddr;
 static struct sockaddr_storage daddr;
 static HevTask *task;
+static int port_next;
 static int timeout;
 static unsigned int cycle;
 
@@ -95,7 +96,7 @@ unsk_run (void)
     type = hev_conf_type ();
     ufwd = hev_conf_taddr ();
     addr = hev_conf_baddr ();
-    port = hev_conf_bport ();
+    port = hev_conf_bport (port_next);
     stun = hev_conf_stun ();
     sport = hev_conf_sport ();
     iface = hev_conf_iface ();
@@ -105,6 +106,7 @@ unsk_run (void)
 
     fd = hev_sock_client_base (type, SOCK_DGRAM, addr, port, stun, sport, iface,
                                mark, &saddr, &daddr);
+    port_next = (fd < 0);
     if (fd < 0) {
         LOGV (E, "%s", "Start UDP keep-alive service failed.");
         return;
