@@ -245,21 +245,23 @@ hev_conf_baddr (void)
 }
 
 const char *
-hev_conf_bport (void)
+hev_conf_bport (int next)
 {
     static char port[16];
 
-    if (brand) {
-        int n = bport[1] - bport[0] + 1;
-        bport[2] = bport[0] + (rand () % n);
-    }
+    if (!port[0] || next) {
+        if (brand) {
+            int n = bport[1] - bport[0] + 1;
+            bport[2] = bport[0] + (rand () % n);
+        }
 
-    snprintf (port, sizeof (port) - 1, "%u", bport[2]);
+        snprintf (port, sizeof (port) - 1, "%u", bport[2]);
 
-    if (!brand) {
-        bport[2] = bport[2] + 1;
-        if (bport[2] > bport[1]) {
-            bport[2] = bport[0];
+        if (!brand) {
+            bport[2] = bport[2] + 1;
+            if (bport[2] > bport[1]) {
+                bport[2] = bport[0];
+            }
         }
     }
 

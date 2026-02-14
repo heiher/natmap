@@ -26,6 +26,7 @@
 
 static struct sockaddr_storage saddr;
 static HevTask *task;
+static int port_next;
 static int timeout;
 static int fd;
 
@@ -98,13 +99,14 @@ tnsk_run (void)
     http = hev_conf_http ();
     tfwd = hev_conf_taddr ();
     addr = hev_conf_baddr ();
-    port = hev_conf_bport ();
+    port = hev_conf_bport (port_next);
     hport = hev_conf_hport ();
     iface = hev_conf_iface ();
     mark = hev_conf_mark ();
 
     fd = hev_sock_client_base (type, SOCK_STREAM, addr, port, http, hport,
                                iface, mark, &saddr, NULL);
+    port_next = (fd < 0);
     if (fd < 0) {
         LOGV (E, "%s", "Start TCP keep-alive service failed.");
         return;
