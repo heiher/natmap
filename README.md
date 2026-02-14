@@ -216,11 +216,14 @@ scoop install main/natmap
 
 ## Contributors
 * **abgelehnt** - https://github.com/abgelehnt
+* **goimer** - https://github.com/goimer
 * **hev** - https://hev.cc
 * **lxeon** - https://github.com/lxeon
 * **mike wang** - https://github.com/mikewang000000
 * **muink** - https://github.com/muink
+* **ragingbulld** - https://github.com/ragingbulld
 * **tianling shen** - https://github.com/1715173329
+* **wordless echo** - https://github.com/wordlessecho
 * **xhe** - https://github.com/xhebox
 
 ## License
