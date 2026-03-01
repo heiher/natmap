@@ -165,7 +165,9 @@ hev_conf_init (int argc, char *argv[])
     }
 
     if (!bport[0]) {
-        bport[0] = 0;
+        bport[0] = 1;
+        bport[1] = 65535;
+        brand = 1;
     }
     if (!bport[1]) {
         bport[1] = bport[0];
