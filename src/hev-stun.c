@@ -25,6 +25,8 @@
 
 #include "hev-stun.h"
 
+#define BUFSIZE 2048
+
 typedef struct _StunMessage StunMessage;
 typedef struct _StunAttribute StunAttribute;
 typedef struct _StunMappedAddr StunMappedAddr;
@@ -240,8 +242,7 @@ stun_unpack (StunMessage *msg, void *body, size_t len, int pos,
 static int
 stun_bind (int fd, int mode, unsigned int baddr[4], int bport)
 {
-    const int bufsize = 2048;
-    char buf[bufsize + 32];
+    char buf[BUFSIZE + 32];
     unsigned int maddr[4];
     unsigned short mport;
     StunMessage msg;
@@ -253,10 +254,10 @@ stun_bind (int fd, int mode, unsigned int baddr[4], int bport)
     stun_pack (&msg);
 
     if (mode == SOCK_STREAM) {
-        len = stun_tcp (fd, &msg, buf, bufsize);
+        len = stun_tcp (fd, &msg, buf, BUFSIZE);
         pos = 0;
     } else {
-        len = stun_udp (fd, &msg, buf, bufsize);
+        len = stun_udp (fd, &msg, buf, BUFSIZE);
         pos = sizeof (msg);
     }
     if (len <= 0) {
