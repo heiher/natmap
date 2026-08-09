@@ -26,6 +26,8 @@
 
 #include "hev-ufwd.h"
 
+#define BUFSIZE 2048
+
 typedef struct _Session Session;
 
 struct _Session
@@ -152,9 +154,8 @@ static void
 client_task_entry (void *data)
 {
     HevTask *task = hev_task_self ();
-    const int bufsize = 2048;
     struct sockaddr *pa;
-    char buf[bufsize];
+    char buf[BUFSIZE];
     Session *s = data;
     int timeout;
 
@@ -166,7 +167,7 @@ client_task_entry (void *data)
         int len;
 
         s->active = 0;
-        len = hev_task_io_socket_recvfrom (s->fd, buf, bufsize, 0, NULL, NULL,
+        len = hev_task_io_socket_recvfrom (s->fd, buf, BUFSIZE, 0, NULL, NULL,
                                            io_yielder, &timeout);
         if (len <= 0) {
             if ((len == -2) && s->active) {
@@ -209,14 +210,13 @@ server_task_entry (void *data)
     for (;;) {
         struct sockaddr_storage addr = { 0 };
         socklen_t alen = sizeof (addr);
-        const int bufsize = 2048;
         struct sockaddr *pa;
-        char buf[bufsize];
+        char buf[BUFSIZE];
         Session *s;
         int len;
 
         pa = (struct sockaddr *)&addr;
-        len = hev_task_io_socket_recvfrom (sfd, buf, bufsize, 0, pa, &alen,
+        len = hev_task_io_socket_recvfrom (sfd, buf, BUFSIZE, 0, pa, &alen,
                                            yielder, NULL);
         if (len < 0) {
             break;
