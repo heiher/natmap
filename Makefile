@@ -12,6 +12,9 @@ CCFLAGS=-O3 -pipe -Wall -Werror $(CFLAGS) \
 LDFLAGS=-L$(THIRDPARTDIR)/hev-task-system/bin -lhev-task-system \
 		-lpthread $(LFLAGS)
 
+CCFLAGS+=$(shell $(CC) -Werror -fno-stack-clash-protection -E -x c /dev/null \
+           >/dev/null 2>&1 && echo -fno-stack-clash-protection)
+
 SRCDIR=src
 BINDIR=bin
 BUILDDIR=build

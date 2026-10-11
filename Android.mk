@@ -29,7 +29,7 @@ LOCAL_SRC_FILES := $(patsubst $(SRCDIR)/%,src/%,$(SRCFILES))
 LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/third-part/hev-task-system/include \
 	$(LOCAL_PATH)/third-part/hev-task-system/src/lib/rbtree
-LOCAL_CFLAGS += $(VERSION_CFLAGS)
+LOCAL_CFLAGS += -fno-stack-clash-protection $(VERSION_CFLAGS)
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 LOCAL_CFLAGS += -mfpu=neon
 endif
