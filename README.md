@@ -29,12 +29,30 @@ cd natmap
 git clone --recursive https://github.com/heiher/natmap.git jni
 ndk-build
 
-# windows (msys2)
-export MSYS=winsymlinks:native
-git clone --recursive https://github.com/heiher/natmap.git
+```
+
+### Windows (MSVC + Clang)
+
+The same `Makefile` builds natively with clang targeting MSVC. Open a Visual
+Studio developer prompt (clang from the VS LLVM component or `PATH`), make
+sure GNU make and a POSIX `sh.exe` (for example the one of Git for Windows,
+`C:\Program Files\Git\usr\bin`) are on `PATH`, then:
+
+```bat
+git clone --recursive https://github.com/heiher/natmap
 cd natmap
 make
+make ARCH=x86
+make ARCH=arm64
 ```
+
+`ARCH` is `x64` (default), `x86` or `arm64` and must match the developer
+prompt. Run `make clean` when switching between architectures.
+
+On native Windows there is no daemon mode (`-d`), no `-f` fwmark, and `-i`
+only accepts an IP address, not an interface name. The notify script (`-e`)
+must be directly executable, such as `.exe`, `.bat` or `.cmd`. Stop natmap
+with Ctrl+C.
 
 ## How to Use
 

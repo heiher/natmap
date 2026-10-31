@@ -8,8 +8,6 @@
  */
 
 #include <stdio.h>
-#include <unistd.h>
-#include <netinet/in.h>
 
 #include <hev-task.h>
 #include <hev-task-io.h>
@@ -72,7 +70,8 @@ unsk_keep_alive (void)
             break;
         }
 
-        res = sendto (fd, "k", 1, 0, (struct sockaddr *)&daddr, addrlen);
+        res = hev_task_io_socket_sendto (
+            fd, "k", 1, 0, (struct sockaddr *)&daddr, addrlen, NULL, NULL);
         if (res < 0) {
             LOG (E);
             break;
@@ -112,7 +111,7 @@ unsk_run (void)
         return;
     }
     hev_task_del_fd (hev_task_self (), fd);
-    close (fd);
+    hev_task_io_close (fd);
 
     hev_stun_run ((struct sockaddr *)&saddr, stun_handler);
 

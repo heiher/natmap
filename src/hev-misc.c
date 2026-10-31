@@ -9,19 +9,22 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <dirent.h>
-#include <unistd.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
+
+#include <hev-sys.h>
+
+#if !defined(_WIN32)
+#include <dirent.h>
+#endif
 
 #if defined(__linux__)
-#include <netinet/in.h>
 #include <sys/syscall.h>
 #include <netinet/tcp.h>
 #endif
 
 #include "hev-misc.h"
+
+#if !defined(_WIN32)
 
 #if defined(__mips__)
 #if defined(_LP64)
@@ -51,6 +54,8 @@ run_syscall (long n, ...)
 }
 #endif
 
+#endif /* !defined(_WIN32) */
+
 int
 hev_io_yielder (HevTaskYieldType type, void *data)
 {
@@ -71,6 +76,8 @@ hev_io_yielder (HevTaskYieldType type, void *data)
 
     return 0;
 }
+
+#if !defined(_WIN32)
 
 static unsigned long
 get_inode (int port, int family)
@@ -239,6 +246,16 @@ hev_reuse_port (const char *port)
     return result;
 }
 
+#else
+
+int
+hev_reuse_port (const char *port)
+{
+    return 0;
+}
+
+#endif
+
 int
 hev_tcp_cca (int fd, const char *algo)
 {
@@ -252,6 +269,9 @@ hev_tcp_cca (int fd, const char *algo)
 int
 hev_run_daemon (void)
 {
+#ifdef _WIN32
+    return -1;
+#else
     switch (fork ()) {
     case -1:
         return -1;
@@ -266,4 +286,5 @@ hev_run_daemon (void)
     }
 
     return 0;
+#endif
 }

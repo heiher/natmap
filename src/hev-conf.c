@@ -8,12 +8,11 @@
  */
 
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
 
+#include <hev-sys.h>
+
+#include "hev-compat.h"
 #include "hev-misc.h"
 
 #include "hev-conf.h"

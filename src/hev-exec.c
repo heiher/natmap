@@ -9,20 +9,21 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <signal.h>
-#include <unistd.h>
-#include <sys/wait.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
 
-#include <hev-task-call.h>
+#include <hev-sys.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <signal.h>
+#include <sys/wait.h>
+#endif
 
 #include "hev-conf.h"
 #include "hev-misc.h"
 
 #include "hev-exec.h"
 
-static HevTaskCall call;
 static const char *mode;
 static const char *path;
 static char oaddr[INET6_ADDRSTRLEN];
@@ -31,6 +32,35 @@ static char oport[32];
 static char iport[32];
 static char ip4p[32];
 
+#ifdef _WIN32
+
+static void
+hev_exec_spawn (void)
+{
+    STARTUPINFOA si = { .cb = sizeof (si) };
+    PROCESS_INFORMATION pi;
+    char cmd[1024];
+    int len;
+
+    len = snprintf (cmd, sizeof (cmd), "\"%s\" %s %s %s %s %s %s", path, oaddr,
+                    oport, ip4p[0] ? ip4p : "\"\"", iport, mode, iaddr);
+    if (len < 0 || len >= sizeof (cmd)) {
+        LOGV (E, "%s", "Script command line is too long.");
+        return;
+    }
+
+    if (!CreateProcessA (NULL, cmd, NULL, NULL, FALSE, 0, NULL, NULL, &si,
+                         &pi)) {
+        LOGV (E, "%s", "Run script failed, Please check is it executable?");
+        return;
+    }
+
+    CloseHandle (pi.hThread);
+    CloseHandle (pi.hProcess);
+}
+
+#else
+
 static void
 signal_handler (int signum)
 {
@@ -38,7 +68,7 @@ signal_handler (int signum)
 }
 
 static void
-hev_exec_fork_exec (HevTaskCall *call)
+hev_exec_spawn (void)
 {
     pid_t pid;
 
@@ -56,11 +86,7 @@ hev_exec_fork_exec (HevTaskCall *call)
     exit (-1);
 }
 
-void
-hev_exec_init (void *stack)
-{
-    call.stack_top = stack;
-}
+#endif
 
 void
 hev_exec_run (int family, unsigned int maddr[4], unsigned short mport,
@@ -71,7 +97,9 @@ hev_exec_run (int family, unsigned int maddr[4], unsigned short mport,
     const char *fmt;
 
     path = hev_conf_path ();
+#ifndef _WIN32
     signal (SIGCHLD, signal_handler);
+#endif
 
     q = (unsigned char *)maddr;
     p = (unsigned char *)&mport;
@@ -107,9 +135,5 @@ hev_exec_run (int family, unsigned int maddr[4], unsigned short mport,
         return;
     }
 
-#ifdef __MSYS__
-    hev_task_call_jump (&call, hev_exec_fork_exec);
-#else
-    hev_exec_fork_exec (&call);
-#endif
+    hev_exec_spawn ();
 }

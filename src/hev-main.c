@@ -9,17 +9,20 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+
+#include <hev-sys.h>
+
+#ifndef _WIN32
 #include <signal.h>
-#include <unistd.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#endif
 
 #include <hev-task-system.h>
 
 #include "hev-conf.h"
-#include "hev-exec.h"
 #include "hev-misc.h"
-#include "hev-winc.h"
 #include "hev-xnsk.h"
 
 #include "hev-main.h"
@@ -27,21 +30,14 @@
 int
 main (int argc, char *argv[])
 {
-    char stack[HEV_EXEC_STACK_SIZE];
+#ifndef _WIN32
     struct rlimit limit = {
         .rlim_cur = 65536,
         .rlim_max = 65536,
     };
     struct timeval tv;
-    int res;
-
-#if defined(__MSYS__)
-    res = hev_winc_setup_ctrlc ();
-    if (res < 0) {
-        LOG (E);
-        return -3;
-    }
 #endif
+    int res;
 
     res = hev_conf_init (argc, argv);
     if (res < 0) {
@@ -57,12 +53,15 @@ main (int argc, char *argv[])
         hev_run_daemon ();
     }
 
+#ifndef _WIN32
     gettimeofday (&tv, 0);
     srand (tv.tv_sec ^ tv.tv_usec);
 
     signal (SIGPIPE, SIG_IGN);
     setrlimit (RLIMIT_NOFILE, &limit);
-    hev_exec_init (&stack[HEV_EXEC_STACK_SIZE]);
+#else
+    srand (time (NULL) ^ clock ());
+#endif
 
     res = hev_task_system_init ();
     if (res < 0) {

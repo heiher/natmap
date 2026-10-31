@@ -8,12 +8,14 @@
  */
 
 #include <errno.h>
-#include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
+
+#include <hev-sys.h>
+
+#ifndef _WIN32
 #include <net/if.h>
-#include <netinet/in.h>
+#endif
 
 #include <hev-task.h>
 #include <hev-task-dns.h>
@@ -107,13 +109,16 @@ get_sock (struct addrinfo *ai)
         return -1;
     }
 
-    res = fcntl (fd, F_SETFD, fcntl (fd, F_GETFD) | FD_CLOEXEC);
+    res = hev_task_io_fcntl (fd, F_SETFD,
+                             hev_task_io_fcntl (fd, F_GETFD) | FD_CLOEXEC);
     if (res < 0) {
         LOG (W);
     }
 
-    setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (int));
-    setsockopt (fd, SOL_SOCKET, SO_REUSEPORT, &reuse, sizeof (int));
+    hev_task_io_socket_setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &reuse,
+                                   sizeof (int));
+    hev_task_io_socket_setsockopt (fd, SOL_SOCKET, SO_REUSEPORT, &reuse,
+                                   sizeof (int));
 
     return fd;
 }
@@ -129,7 +134,8 @@ bind_iface (int fd, int family, const char *iface)
     struct ifreq ifr = { 0 };
 
     strncpy (ifr.ifr_name, iface, sizeof (ifr.ifr_name) - 1);
-    return setsockopt (fd, SOL_SOCKET, SO_BINDTODEVICE, &ifr, sizeof (ifr));
+    return hev_task_io_socket_setsockopt (fd, SOL_SOCKET, SO_BINDTODEVICE, &ifr,
+                                          sizeof (ifr));
 #elif defined(__APPLE__) || defined(__MACH__)
     int i;
 
@@ -140,9 +146,11 @@ bind_iface (int fd, int family, const char *iface)
 
     switch (family) {
     case AF_INET:
-        return setsockopt (fd, IPPROTO_IP, IP_BOUND_IF, &i, sizeof (i));
+        return hev_task_io_socket_setsockopt (fd, IPPROTO_IP, IP_BOUND_IF, &i,
+                                              sizeof (i));
     case AF_INET6:
-        return setsockopt (fd, IPPROTO_IPV6, IPV6_BOUND_IF, &i, sizeof (i));
+        return hev_task_io_socket_setsockopt (fd, IPPROTO_IPV6, IPV6_BOUND_IF,
+                                              &i, sizeof (i));
     }
 #endif
 
@@ -153,9 +161,11 @@ static int
 bind_fwmark (int fd, unsigned int mark)
 {
 #if defined(__linux__)
-    return setsockopt (fd, SOL_SOCKET, SO_MARK, &mark, sizeof (mark));
+    return hev_task_io_socket_setsockopt (fd, SOL_SOCKET, SO_MARK, &mark,
+                                          sizeof (mark));
 #elif defined(__FreeBSD__)
-    return setsockopt (fd, SOL_SOCKET, SO_USER_COOKIE, &mark, sizeof (mark));
+    return hev_task_io_socket_setsockopt (fd, SOL_SOCKET, SO_USER_COOKIE, &mark,
+                                          sizeof (mark));
 #endif
     return 0;
 }
@@ -209,19 +219,19 @@ hev_sock_client_base (int family, int type, const char *saddr,
         LOG (E);
         freeaddrinfo (sai);
         freeaddrinfo (dai);
-        close (fd);
+        hev_task_io_close (fd);
         return -1;
     }
 
-    res = bind (fd, sai->ai_addr, sai->ai_addrlen);
+    res = hev_task_io_socket_bind (fd, sai->ai_addr, sai->ai_addrlen);
     if (res < 0) {
         hev_reuse_port (sport);
-        res = bind (fd, sai->ai_addr, sai->ai_addrlen);
+        res = hev_task_io_socket_bind (fd, sai->ai_addr, sai->ai_addrlen);
         if (res < 0) {
             LOGV (E, "%s", strerror (errno));
             freeaddrinfo (sai);
             freeaddrinfo (dai);
-            close (fd);
+            hev_task_io_close (fd);
             return -1;
         }
     }
@@ -234,16 +244,17 @@ hev_sock_client_base (int family, int type, const char *saddr,
     freeaddrinfo (dai);
     if (res < 0) {
         hev_task_del_fd (task, fd);
-        close (fd);
+        hev_task_io_close (fd);
         return -1;
     }
 
     addrlen = sizeof (struct sockaddr_storage);
-    res = getsockname (fd, (struct sockaddr *)baddr, &addrlen);
+    res =
+        hev_task_io_socket_getsockname (fd, (struct sockaddr *)baddr, &addrlen);
     if (res < 0) {
         LOG (E);
         hev_task_del_fd (task, fd);
-        close (fd);
+        hev_task_io_close (fd);
         return -1;
     }
 
@@ -296,15 +307,15 @@ hev_sock_client_stun (struct sockaddr *saddr, int type, const char *daddr,
     if (res < 0) {
         LOG (E);
         freeaddrinfo (dai);
-        close (fd);
+        hev_task_io_close (fd);
         return -1;
     }
 
-    res = bind (fd, saddr, addrlen);
+    res = hev_task_io_socket_bind (fd, saddr, addrlen);
     if (res < 0) {
         LOG (E);
         freeaddrinfo (dai);
-        close (fd);
+        hev_task_io_close (fd);
         return -1;
     }
 
@@ -315,15 +326,16 @@ hev_sock_client_stun (struct sockaddr *saddr, int type, const char *daddr,
     freeaddrinfo (dai);
     if (res < 0) {
         hev_task_del_fd (task, fd);
-        close (fd);
+        hev_task_io_close (fd);
         return -1;
     }
 
-    res = getsockname (fd, (struct sockaddr *)&taddr, &addrlen);
+    res = hev_task_io_socket_getsockname (fd, (struct sockaddr *)&taddr,
+                                          &addrlen);
     if (res < 0) {
         LOG (E);
         hev_task_del_fd (task, fd);
-        close (fd);
+        hev_task_io_close (fd);
         return -1;
     }
 
@@ -370,7 +382,7 @@ hev_sock_client_pfwd (int type, const char *addr, const char *port)
     if (res < 0) {
         LOG (E);
         hev_task_del_fd (task, fd);
-        close (fd);
+        hev_task_io_close (fd);
         return -1;
     }
 
@@ -407,29 +419,17 @@ hev_sock_server_pfwd (struct sockaddr *saddr, int type, const char *iface,
         return -1;
     }
 
-#ifdef __MSYS__
-    if (type == SOCK_DGRAM) {
-        if (baddr.ss_family == AF_INET) {
-            struct sockaddr_in *pa = (struct sockaddr_in *)&baddr;
-            memset (&pa->sin_addr, 0, 4);
-        } else if (baddr.ss_family == AF_INET6) {
-            struct sockaddr_in6 *pa = (struct sockaddr_in6 *)&baddr;
-            memset (&pa->sin6_addr, 0, 16);
-        }
-    }
-#endif
-
-    res = bind (fd, (struct sockaddr *)&baddr, addrlen);
+    res = hev_task_io_socket_bind (fd, (struct sockaddr *)&baddr, addrlen);
     res |= bind_iface (fd, baddr.ss_family, iface);
     if (mark) {
         res |= bind_fwmark (fd, mark);
     }
     if (type == SOCK_STREAM) {
-        res |= listen (fd, 5);
+        res |= hev_task_io_socket_listen (fd, 5);
     }
     if (res < 0) {
         LOG (E);
-        close (fd);
+        hev_task_io_close (fd);
         return -1;
     }
 

@@ -9,7 +9,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 #include <hev-task.h>
 #include <hev-task-io.h>
@@ -58,7 +57,7 @@ client_task_entry (void *data)
     dfd = hev_sock_client_pfwd (mode, addr, port);
     if (dfd < 0) {
         LOG (W);
-        close (sfd);
+        hev_task_io_close (sfd);
         return;
     }
 
@@ -72,8 +71,8 @@ client_task_entry (void *data)
 
     hev_task_del_fd (task, sfd);
     hev_task_del_fd (task, dfd);
-    close (sfd);
-    close (dfd);
+    hev_task_io_close (sfd);
+    hev_task_io_close (dfd);
 }
 
 static void
@@ -112,7 +111,7 @@ server_task_entry (void *data)
         hev_task_run (task, client_task_entry, (void *)(intptr_t)nfd);
     }
 
-    close (fd);
+    hev_task_io_close (fd);
     task = NULL;
 }
 

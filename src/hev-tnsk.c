@@ -9,7 +9,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
 
 #include <hev-task.h>
 #include <hev-task-io.h>
@@ -120,7 +119,7 @@ tnsk_run (void)
         hev_tfwd_kill ();
     }
     hev_task_del_fd (hev_task_self (), fd);
-    close (fd);
+    hev_task_io_close (fd);
 }
 
 static void

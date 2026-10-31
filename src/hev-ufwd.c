@@ -10,8 +10,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <netinet/in.h>
 
 #include <hev-task.h>
 #include <hev-task-io.h>
@@ -131,7 +129,7 @@ session_new (struct sockaddr *saddr, socklen_t len)
     if (!s) {
         LOG (E);
         hev_task_del_fd (hev_task_self (), fd);
-        close (fd);
+        hev_task_io_close (fd);
         return NULL;
     }
 
@@ -146,7 +144,7 @@ session_new (struct sockaddr *saddr, socklen_t len)
 static void
 session_free (Session *s)
 {
-    close (s->fd);
+    hev_task_io_close (s->fd);
     hev_free (s);
 }
 
@@ -176,7 +174,8 @@ client_task_entry (void *data)
             break;
         }
 
-        len = sendto (sfd, buf, len, 0, pa, s->alen);
+        len = hev_task_io_socket_sendto (sfd, buf, len, 0, pa, s->alen, NULL,
+                                         NULL);
         if (len <= 0) {
             break;
         }
@@ -234,12 +233,12 @@ server_task_entry (void *data)
             hev_task_run (s->task, client_task_entry, s);
         }
 
-        send (s->fd, buf, len, 0);
+        hev_task_io_socket_send (s->fd, buf, len, 0, NULL, NULL);
         s->active = 1;
     }
 
     hev_task_del_fd (hev_task_self (), sfd);
-    close (sfd);
+    hev_task_io_close (sfd);
     task = NULL;
     sfd = -1;
 }

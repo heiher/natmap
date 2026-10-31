@@ -10,19 +10,6 @@
 #ifndef __HEV_EXEC_H__
 #define __HEV_EXEC_H__
 
-#ifdef __MSYS__
-#define HEV_EXEC_STACK_SIZE (16384)
-#else
-#define HEV_EXEC_STACK_SIZE (1)
-#endif
-
-/**
- * hev_exec_init:
- *
- * Initialize exec.
- */
-void hev_exec_init (void *stack);
-
 /**
  * hev_exec_run:
  * @family: network family

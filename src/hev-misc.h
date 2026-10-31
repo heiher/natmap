@@ -10,6 +10,8 @@
 #ifndef __HEV_MISC_H__
 #define __HEV_MISC_H__
 
+#include <stddef.h>
+
 #include <hev-task.h>
 #include <hev-task-io.h>
 

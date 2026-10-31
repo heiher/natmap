@@ -8,7 +8,8 @@
  */
 
 #include <stdio.h>
-#include <sys/socket.h>
+
+#include <hev-sys.h>
 
 #include "hev-conf.h"
 #include "hev-misc.h"

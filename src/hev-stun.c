@@ -10,8 +10,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <arpa/inet.h>
 
 #include <hev-task.h>
 #include <hev-task-io.h>
@@ -301,17 +299,10 @@ task_entry (void *data)
     iface = hev_conf_iface ();
     mark = hev_conf_mark ();
 
-#ifdef __MSYS__
-    udp_timeout = 100;
-    udp_retry1 = 50;
-    udp_retry2 = 5;
-    loop = 0;
-#else
     udp_timeout = 3000;
     udp_retry1 = 10;
     udp_retry2 = 10;
     loop = (mode == SOCK_DGRAM);
-#endif
 
     fd = hev_sock_client_stun (data, mode, stun, sport, iface, mark, baddr,
                                &bport);
@@ -337,7 +328,7 @@ task_entry (void *data)
     }
 
     hev_task_del_fd (hev_task_self (), fd);
-    close (fd);
+    hev_task_io_close (fd);
 exit:
     task = NULL;
 }
