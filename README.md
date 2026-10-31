@@ -1,6 +1,6 @@
 # NATMap
 
-[![status](https://github.com/heiher/natmap/actions/workflows/build.yaml/badge.svg?branch=main&event=push)](https://github.com/heiher/natmap)
+[![status](https://github.com/heiher/natmap/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/heiher/natmap)
 [![chat](https://github.com/heiher/natmap/raw/main/.github/badges/telegram.svg)](https://t.me/hellonatter)
 
 This project is used to establish a TCP/UDP port mapping from an ISP NAT public
